@@ -325,6 +325,15 @@ describe('queryParser', () => {
       expect(results['left']['inclusive']).to.equal('right');
     });
 
+    it('handles quoted terms in range', () => {
+      var results = lucene.parse('foo:{"1000" TO "1001"]');
+
+      expect(results['left']['field']).to.equal('foo');
+      expect(results['left']['term_min']).to.equal('"1000"');
+      expect(results['left']['term_max']).to.equal('"1001"');
+      expect(results['left']['inclusive']).to.equal('right');
+    });
+
     it('parses mixed range expression (right inclusive) with date ISO format', () => {
       var results = lucene.parse('date:{2017-11-17T01:32:45.123Z TO 2017-11-18T04:28:11.999Z]');
 

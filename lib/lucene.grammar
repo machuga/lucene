@@ -273,7 +273,7 @@ term
 
 rterm_char
   = "\\" sequence:EscapeSequence { return '\\' + sequence; }
-  / '.' / [^ \t\r\n\f\{\}()"/^~\[\]]
+  / '.' / [^ \t\r\n\f\{\}()/^~\[\]]
 
 
 ranged_term
