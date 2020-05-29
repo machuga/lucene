@@ -178,13 +178,13 @@ describe('queryParser', () => {
     });
 
     it('parses explicit field name for term with prefix', () => {
-      var results = lucene.parse('foo:-bar');
+      var results = lucene.parse('-foo:bar');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['prefix']).to.equal('-');
 
-      results = lucene.parse('foo:+bar');
+      results = lucene.parse('+foo:bar');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('bar');
@@ -192,13 +192,13 @@ describe('queryParser', () => {
     });
 
     it('parses explicit field name for quoted term with prefix', () => {
-      var results = lucene.parse('foo:-"fizz buzz"');
+      var results = lucene.parse('-foo:"fizz buzz"');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['prefix']).to.equal('-');
 
-      results = lucene.parse('foo:+"fizz buzz"');
+      results = lucene.parse('+foo:"fizz buzz"');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('fizz buzz');

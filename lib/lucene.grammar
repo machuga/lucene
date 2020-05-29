@@ -159,10 +159,7 @@ paren_exp
     }
 
 field_exp
-
-
-
-  = fieldname:fieldname? range:range_operator_exp
+  = op:prefix_operator_exp? fieldname:fieldname? range:range_operator_exp
     {
         range['field'] =
             fieldname == null || fieldname.label == ''
@@ -173,15 +170,25 @@ field_exp
             ? null
             : fieldname.location;
 
+        if('' != op)
+        {
+          range['prefix'] = op;
+        }
         return range;
     }
-  / fieldname:fieldname node:paren_exp
+  / op:prefix_operator_exp? fieldname:fieldname node:paren_exp
     {
         node['field']= fieldname.label;
         node['fieldLocation'] = fieldname.location;
+
+        if('' != op)
+        {
+          node['prefix'] = op;
+        }
+
         return node;
     }
-  / fieldname:fieldname? term:term
+  / op:prefix_operator_exp? fieldname:fieldname? term:term
     {
         var fieldexp = {
             'field':
@@ -199,6 +206,11 @@ field_exp
         for(var key in term)
             fieldexp[key] = term[key];
 
+        if('' != op)
+        {
+          fieldexp['prefix'] = op;
+        }
+
         return fieldexp;
     }
 
@@ -213,7 +225,7 @@ fieldname
     }
 
 term
-  = op:prefix_operator_exp? term:quoted_term proximity:proximity_modifier? boost:boost_modifier? _*
+  = term:quoted_term proximity:proximity_modifier? boost:boost_modifier? _*
       {
         var result = {
           'term': term,
@@ -229,10 +241,6 @@ term
         if('' != boost)
         {
             result['boost'] = boost;
-        }
-        if('' != op)
-        {
-            result['prefix'] = op;
         }
 
         return result;

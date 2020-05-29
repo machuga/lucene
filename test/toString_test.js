@@ -96,7 +96,7 @@ describe('toString', () => {
   });
 
   it('must support prefixes and explicit field names (-)', () => {
-    testStr('foo:-bar');
+    testStr('-foo:bar');
   });
 
   it('must support prefixes and explicit field names in round parentheses (-)', () => {
@@ -104,7 +104,7 @@ describe('toString', () => {
   });
 
   it('must support prefixes and explicit field names (+)', () => {
-    testStr('foo:+bar');
+    testStr('+foo:bar');
   });
 
   it('must support prefixes and explicit field names in round parentheses (+)', () => {
@@ -112,7 +112,7 @@ describe('toString', () => {
   });
 
   it('must support quoted prefixes', () => {
-    testStr('foo:-"fizz buzz"');
+    testStr('-foo:"fizz buzz"');
   });
 
   it('must support implicit conjunction operators', () => {
