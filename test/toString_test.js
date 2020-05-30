@@ -52,6 +52,10 @@ describe('toString', () => {
   });
 
   it('must support terms with \'+\'', () => {
+    testStr('created_at:now+5d');
+  });
+
+  it('must support single-sided ranges with \'+\'', () => {
     testStr('created_at:>now+5d');
   });
 

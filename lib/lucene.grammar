@@ -159,7 +159,19 @@ paren_exp
     }
 
 field_exp
-  = op:prefix_operator_exp? fieldname:fieldname? range:range_operator_exp
+  = op:prefix_operator_exp? fieldname:fieldname range:single_range_operator_exp
+    {
+        range['field'] = fieldname.label;
+        range['fieldLocation'] = fieldname.location;
+
+        if('' != op)
+        {
+          range['prefix'] = op;
+        }
+
+        return range;
+    }
+  / op:prefix_operator_exp? fieldname:fieldname? range:range_operator_exp
     {
         range['field'] =
             fieldname == null || fieldname.label == ''
@@ -407,6 +419,40 @@ range_operator_exp
             'term_max': term_max,
             'inclusive': 'right'
         };
+    }
+
+single_range_operator_exp
+  = _* op:single_range_operator term:ranged_term
+    {
+      if (op.startsWith('>')) {
+        return {
+            'term_min': term,
+            'term_max': '<implicit>',
+            'inclusive': op.length > 1 ? 'left' : 'none'
+        };
+      } else {
+        return {
+            'term_min': '<implicit>',
+            'term_max': term,
+            'inclusive': op.length > 1 ? 'right' : 'none'
+        };
+      }
+    }
+
+single_range_operator
+  = '>='
+  / '<='
+  / '>'
+  / '<'
+
+single_exp
+  = _* operator:operator _+
+    {
+        return operator;
+    }
+  / _* operator:operator EOF
+    {
+        return operator;
     }
 
 operator_exp
