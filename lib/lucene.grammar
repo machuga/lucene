@@ -77,8 +77,8 @@
  *
  */
 
-start
-  = _* node:node+
+Start
+  = _* node:Node+
     {
         return node[0];
     }
@@ -91,14 +91,14 @@ start
         return {};
     }
 
-node
-  = operator:operator_exp EOF
+Node
+  = operator:OperatorExpr EOF
     {
         return {
             'operator': operator,
         };
     }
-  / start:operator_exp left:group_exp operator:operator_exp* right:node*
+  / start:OperatorExpr left:GroupExpr operator:OperatorExpr* right:Node*
     {
         var node = {
             'start': start,
@@ -119,11 +119,11 @@ node
 
         return node;
     }
-  / operator:operator_exp right:node
+  / operator:OperatorExpr right:Node
     {
         return right;
     }
-  / left:group_exp operator:operator_exp* right:node*
+  / left:GroupExpr operator:OperatorExpr* right:Node*
     {
         var node = {
             'left':left
@@ -144,22 +144,22 @@ node
         return node;
     }
 
-group_exp
-  = field_exp:field_exp _*
+GroupExpr
+  = field_exp:FieldExpr _*
     {
         return field_exp;
     }
-  / paren_exp
+  / ParenExpr
 
-paren_exp
-  = "(" _* node:node+ ")" _*
+ParenExpr
+  = "(" _* node:Node+ ")" _*
     {
         node[0]['parenthesized'] = true;
         return node[0];
     }
 
-field_exp
-  = op:prefix_operator_exp? fieldname:fieldname range:single_range_operator_exp
+FieldExpr
+  = op:PrefixOperatorExpr? fieldname:FieldName range:SingleRangeOperatorExpr
     {
         range['field'] = fieldname.label;
         range['fieldLocation'] = fieldname.location;
@@ -171,7 +171,7 @@ field_exp
 
         return range;
     }
-  / op:prefix_operator_exp? fieldname:fieldname? range:range_operator_exp
+  / op:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
     {
         range['field'] =
             fieldname == null || fieldname.label == ''
@@ -188,7 +188,7 @@ field_exp
         }
         return range;
     }
-  / op:prefix_operator_exp? fieldname:fieldname node:paren_exp
+  / op:PrefixOperatorExpr? fieldname:FieldName node:ParenExpr
     {
         node['field']= fieldname.label;
         node['fieldLocation'] = fieldname.location;
@@ -200,7 +200,7 @@ field_exp
 
         return node;
     }
-  / op:prefix_operator_exp? fieldname:fieldname? term:term
+  / op:PrefixOperatorExpr? fieldname:FieldName? term:Term
     {
         var fieldexp = {
             'field':
@@ -226,8 +226,8 @@ field_exp
         return fieldexp;
     }
 
-fieldname
-  = fieldname:unquoted_term [:] _*
+FieldName
+  = fieldname:UnquotedTerm [:] _*
     {
         return {
           label: fieldname.label,
@@ -236,8 +236,8 @@ fieldname
 
     }
 
-term
-  = term:quoted_term proximity:proximity_modifier? boost:boost_modifier? _*
+Term
+  = term:QuotedTerm proximity:ProximityModifier? boost:BoostModifier? _*
       {
         var result = {
           'term': term,
@@ -257,7 +257,7 @@ term
 
         return result;
     }
-  / op:prefix_operator_exp? term:regex_term _*
+  / op:PrefixOperatorExpr? term:RegexTerm _*
       {
         var result = {
           'term': term,
@@ -268,7 +268,7 @@ term
 
         return result;
     }
-  / op:prefix_operator_exp? term:unquoted_term similarity:fuzzy_modifier? boost:boost_modifier? _*
+  / op:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
     {
         var result = {
           'term': term.label,
@@ -291,19 +291,19 @@ term
         return result;
     }
 
-rterm_char
+RangedTermChar
   = "\\" sequence:EscapeSequence { return '\\' + sequence; }
   / '.' / [^ \t\r\n\f\{\}()/^~\[\]]
 
 
-ranged_term
-  = term:rterm_char+
+RangedTerm
+  = term:RangedTermChar+
     {
         return term.join('');
     }
 
-unquoted_term
-  = term:term_char+
+UnquotedTerm
+  = term:TermChar+
     {
         return {
           label: term.join(''),
@@ -311,15 +311,15 @@ unquoted_term
         };
     }
 
-term_char
+TermChar
   = "\\" sequence:EscapeSequence { return '\\' + sequence; }
   / '.' / [^: \t\r\n\f\{\}()"/^~\[\]]
 
 
-quoted_term
+QuotedTerm
   = '"' chars:DoubleStringCharacter* '"' { return chars.join(''); }
 
-regex_term
+RegexTerm
   = '/' chars:RegexCharacter+ '/' { return chars.join('') }
 
 DoubleStringCharacter
@@ -329,6 +329,144 @@ DoubleStringCharacter
 RegexCharacter
   = !('/' / "\\") char:. { return char; }
   / "\\" sequence:EscapeSequence { return '\\' + sequence; }
+
+ProximityModifier
+  = '~' proximity:IntExpr
+    {
+        return proximity;
+    }
+
+BoostModifier
+  = '^' boost:NumericExpr
+    {
+        return boost;
+    }
+
+FuzzyModifier
+  = '~' fuzziness:DecimalExpr?
+    {
+        return fuzziness == '' || fuzziness == null ? 0.5 : fuzziness;
+    }
+
+NumericExpr
+ = DecimalExpr
+ / IntExpr
+
+DecimalExpr
+ = '0.' val:[0-9]+
+    {
+        return parseFloat("0." + val.join(''));
+    }
+
+IntExpr
+  = val:[0-9]+
+    {
+        return parseInt(val.join(''));
+    }
+
+RangeOperatorExpr
+  = '[' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm ']'
+    {
+        return {
+            'term_min': term_min,
+            'term_max': term_max,
+            'inclusive': 'both'
+        };
+    }
+  / '{' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm '}'
+    {
+        return {
+            'term_min': term_min,
+            'term_max': term_max,
+            'inclusive': 'none'
+        };
+    }
+  / '[' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm '}'
+    {
+        return {
+            'term_min': term_min,
+            'term_max': term_max,
+            'inclusive': 'left'
+        };
+    }
+  / '{' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm ']'
+    {
+        return {
+            'term_min': term_min,
+            'term_max': term_max,
+            'inclusive': 'right'
+        };
+    }
+
+SingleRangeOperatorExpr
+  = _* op:SingleRangeOperator term:RangedTerm
+    {
+      if (op.startsWith('>')) {
+        return {
+            'term_min': term,
+            'term_max': '<implicit>',
+            'inclusive': op.length > 1 ? 'left' : 'none'
+        };
+      } else {
+        return {
+            'term_min': '<implicit>',
+            'term_max': term,
+            'inclusive': op.length > 1 ? 'right' : 'none'
+        };
+      }
+    }
+
+SingleRangeOperator
+  = '>='
+  / '<='
+  / '>'
+  / '<'
+
+SingleExpr
+  = _* operator:Operator _+
+    {
+        return operator;
+    }
+  / _* operator:Operator EOF
+    {
+        return operator;
+    }
+
+OperatorExpr
+  = _* operator:Operator _+
+    {
+        return operator;
+    }
+  / _* operator:Operator EOF
+    {
+        return operator;
+    }
+
+Operator
+  = 'OR NOT'
+  / 'AND NOT'
+  / 'OR'
+  / 'AND'
+  / 'NOT'
+  / '||'
+  / '&&'
+
+PrefixOperatorExpr
+  = _* operator:PrefixOperator
+    {
+        return operator;
+    }
+
+PrefixOperator
+  = '+'
+  / '-'
+  / '!'
+
+_ "whitespace"
+  = [ \t\r\n\f]+
+
+EOF
+  = !.
 
 EscapeSequence
   = "+"
@@ -353,140 +491,4 @@ EscapeSequence
   / "*"
   / " "
 
-proximity_modifier
-  = '~' proximity:int_exp
-    {
-        return proximity;
-    }
 
-boost_modifier
-  = '^' boost:decimal_or_int_exp
-    {
-        return boost;
-    }
-
-fuzzy_modifier
-  = '~' fuzziness:decimal_exp?
-    {
-        return fuzziness == '' || fuzziness == null ? 0.5 : fuzziness;
-    }
-
-decimal_or_int_exp
- = decimal_exp
- / int_exp
-
-decimal_exp
- = '0.' val:[0-9]+
-    {
-        return parseFloat("0." + val.join(''));
-    }
-
-int_exp
-  = val:[0-9]+
-    {
-        return parseInt(val.join(''));
-    }
-
-range_operator_exp
-  = '[' term_min:ranged_term _* 'TO' _+ term_max:ranged_term ']'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'both'
-        };
-    }
-  / '{' term_min:ranged_term _* 'TO' _+ term_max:ranged_term '}'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'none'
-        };
-    }
-  / '[' term_min:ranged_term _* 'TO' _+ term_max:ranged_term '}'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'left'
-        };
-    }
-  / '{' term_min:ranged_term _* 'TO' _+ term_max:ranged_term ']'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'right'
-        };
-    }
-
-single_range_operator_exp
-  = _* op:single_range_operator term:ranged_term
-    {
-      if (op.startsWith('>')) {
-        return {
-            'term_min': term,
-            'term_max': '<implicit>',
-            'inclusive': op.length > 1 ? 'left' : 'none'
-        };
-      } else {
-        return {
-            'term_min': '<implicit>',
-            'term_max': term,
-            'inclusive': op.length > 1 ? 'right' : 'none'
-        };
-      }
-    }
-
-single_range_operator
-  = '>='
-  / '<='
-  / '>'
-  / '<'
-
-single_exp
-  = _* operator:operator _+
-    {
-        return operator;
-    }
-  / _* operator:operator EOF
-    {
-        return operator;
-    }
-
-operator_exp
-  = _* operator:operator _+
-    {
-        return operator;
-    }
-  / _* operator:operator EOF
-    {
-        return operator;
-    }
-
-operator
-  = 'OR NOT'
-  / 'AND NOT'
-  / 'OR'
-  / 'AND'
-  / 'NOT'
-  / '||'
-  / '&&'
-
-prefix_operator_exp
-  = _* operator:prefix_operator
-    {
-        return operator;
-    }
-
-prefix_operator
-  = '+'
-  / '-'
-  / '!'
-
-_ "whitespace"
-  = [ \t\r\n\f]+
-
-EOF
-  = !.
