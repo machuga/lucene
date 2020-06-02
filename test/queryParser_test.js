@@ -8,33 +8,33 @@ describe('queryParser', () => {
   describe('whitespace handling', () => {
     // term parsing
     it('handles empty string', () => {
-      var results = lucene.parse('');
+      const results = lucene.parse('');
 
       expect(isEmpty(results)).to.equal(true);
     });
 
     it('handles leading whitespace with no contents', () => {
-      var results = lucene.parse(' \r\n');
+      const results = lucene.parse(' \r\n');
 
       expect(isEmpty(results)).to.equal(true);
     });
 
     it('handles leading whitespace before an expression string', () => {
-      var results = lucene.parse(' Test:Foo');
+      const results = lucene.parse(' Test:Foo');
 
       expect(results['left']['field']).to.equal('Test');
       expect(results['left']['term']).to.equal('Foo');
     });
 
     it('handles whitespace between colon and term', () => {
-      var results = lucene.parse('foo: bar');
+      const results = lucene.parse('foo: bar');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('bar');
     });
 
     function isEmpty(arr) {
-      for (var i in arr) {
+      for (let i in arr) {
         return false;
       }
       return true;
@@ -45,7 +45,7 @@ describe('queryParser', () => {
   describe('term parsing', () => {
     // term parsing
     it('parses terms', () => {
-      var results = lucene.parse('bar');
+      const results = lucene.parse('bar');
 
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['quoted']).to.be.false;
@@ -53,7 +53,7 @@ describe('queryParser', () => {
     });
 
     it('parses quoted terms', () => {
-      var results = lucene.parse('"fizz buzz"');
+      const results = lucene.parse('"fizz buzz"');
 
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['quoted']).to.be.true;
@@ -61,27 +61,27 @@ describe('queryParser', () => {
     });
 
     it('parses regex terms', () => {
-      var results = lucene.parse('/f[A-z]?o*/');
+      const results = lucene.parse('/f[A-z]?o*/');
       expect(results['left']['term']).to.equal('f[A-z]?o*');
       expect(results['left']['quoted']).to.be.false;
       expect(results['left']['regex']).to.be.true;
     });
 
     it('parses regex terms with escape sequences', () => {
-      var results = lucene.parse('/f[A-z]?\\/o*/');
+      const results = lucene.parse('/f[A-z]?\\/o*/');
       expect(results['left']['term']).to.equal('f[A-z]?\\/o*');
       expect(results['left']['quoted']).to.be.false;
       expect(results['left']['regex']).to.be.true;
     });
 
     it('accepts terms with \'-\'', () => {
-      var results = lucene.parse('created_at:now-5d');
+      const results = lucene.parse('created_at:now-5d');
 
       expect(results['left']['term']).to.equal('now-5d');
     });
 
     it('accepts terms with \'+\'', () => {
-      var results = lucene.parse('published_at:now+5d');
+      const results = lucene.parse('published_at:now+5d');
 
       expect(results['left']['term']).to.equal('now+5d');
     });
@@ -90,42 +90,42 @@ describe('queryParser', () => {
 
   describe('term prefix operators', () => {
     it('parses prefix operators (-)', () => {
-      var results = lucene.parse('-bar');
+      const results = lucene.parse('-bar');
 
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['prefix']).to.equal('-');
     });
 
     it('parses prefix operator (!)', () => {
-      var results = lucene.parse('!bar');
+      const results = lucene.parse('!bar');
 
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['prefix']).to.equal('!');
     });
 
     it('parses prefix operator (+)', () => {
-      var results = lucene.parse('+bar');
+      const results = lucene.parse('+bar');
 
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['prefix']).to.equal('+');
     });
 
     it('parses prefix operator on quoted term (-)', () => {
-      var results = lucene.parse('-"fizz buzz"');
+      const results = lucene.parse('-"fizz buzz"');
 
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['prefix']).to.equal('-');
     });
 
     it('parses prefix operator on quoted term (!)', () => {
-      var results = lucene.parse('!"fizz buzz"');
+      const results = lucene.parse('!"fizz buzz"');
 
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['prefix']).to.equal('!');
     });
 
     it('parses prefix operator on quoted term (+)', () => {
-      var results = lucene.parse('+"fizz buzz"');
+      const results = lucene.parse('+"fizz buzz"');
 
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['prefix']).to.equal('+');
@@ -135,35 +135,35 @@ describe('queryParser', () => {
   describe('field name support', () => {
 
     it('parses implicit field name for term', () => {
-      var results = lucene.parse('bar');
+      const results = lucene.parse('bar');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('bar');
     });
 
     it('parses implicit field name for quoted term', () => {
-      var results = lucene.parse('"fizz buzz"');
+      const results = lucene.parse('"fizz buzz"');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('fizz buzz');
     });
 
     it('parses explicit field name for term', () => {
-      var results = lucene.parse('foo:bar');
+      const results = lucene.parse('foo:bar');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('bar');
     });
 
     it('parses explicit field name for date term', () => {
-      var results = lucene.parse('foo:2015-01-01');
+      const results = lucene.parse('foo:2015-01-01');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('2015-01-01');
     });
 
     it('parses explicit field name including dots (e.g \'sub.field\') for term', () => {
-      var results = lucene.parse('sub.foo:bar');
+      const results = lucene.parse('sub.foo:bar');
 
       expect(results['left']['field']).to.equal('sub.foo');
       expect(results['left']['term']).to.equal('bar');
@@ -171,53 +171,55 @@ describe('queryParser', () => {
 
 
     it('parses explicit field name for quoted term', () => {
-      var results = lucene.parse('foo:"fizz buzz"');
+      const results = lucene.parse('foo:"fizz buzz"');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('fizz buzz');
     });
 
-    it('parses explicit field name for term with prefix', () => {
-      var results = lucene.parse('-foo:bar');
+    it('parses explicit field name for term with - prefix', () => {
+      const results = lucene.parse('-foo:bar');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['prefix']).to.equal('-');
+    });
 
-      results = lucene.parse('+foo:bar');
+    it('parses explicit field name for term with + prefix', () => {
+      const results = lucene.parse('+foo:bar');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('bar');
       expect(results['left']['prefix']).to.equal('+');
     });
 
-    it('parses explicit field name for quoted term with prefix', () => {
-      var results = lucene.parse('-foo:"fizz buzz"');
+    it('parses explicit field name for quoted term with - prefix', () => {
+      const results = lucene.parse('-foo:"fizz buzz"');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['prefix']).to.equal('-');
+    });
 
-      results = lucene.parse('+foo:"fizz buzz"');
+    it('parses explicit field name for quoted term with + prefix', () => {
+      const results = lucene.parse('+foo:"fizz buzz"');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term']).to.equal('fizz buzz');
       expect(results['left']['prefix']).to.equal('+');
     });
-
   });
 
   describe('conjunction operators', () => {
-
     it('parses implicit conjunction operator (OR)', () => {
-      var results = lucene.parse('fizz buzz');
+      const results = lucene.parse('fizz buzz');
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('<implicit>');
       expect(results['right']['term']).to.equal('buzz');
     });
 
     it('parses explicit conjunction operator (AND)', () => {
-      var results = lucene.parse('fizz AND buzz');
+      const results = lucene.parse('fizz AND buzz');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('AND');
@@ -225,7 +227,7 @@ describe('queryParser', () => {
     });
 
     it('parses explicit conjunction operator (OR)', () => {
-      var results = lucene.parse('fizz OR buzz');
+      const results = lucene.parse('fizz OR buzz');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('OR');
@@ -233,7 +235,7 @@ describe('queryParser', () => {
     });
 
     it('parses explicit conjunction operator (NOT)', () => {
-      var results = lucene.parse('fizz NOT buzz');
+      const results = lucene.parse('fizz NOT buzz');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('NOT');
@@ -241,7 +243,7 @@ describe('queryParser', () => {
     });
 
     it('parses explicit conjunction operator (&&)', () => {
-      var results = lucene.parse('fizz && buzz');
+      const results = lucene.parse('fizz && buzz');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('&&');
@@ -249,7 +251,7 @@ describe('queryParser', () => {
     });
 
     it('parses explicit conjunction operator (||)', () => {
-      var results = lucene.parse('fizz || buzz');
+      const results = lucene.parse('fizz || buzz');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('||');
@@ -259,13 +261,13 @@ describe('queryParser', () => {
 
   describe('parentheses groups', () => {
     it('parses parentheses group', () => {
-      var results = lucene.parse('fizz (buzz baz)');
+      const results = lucene.parse('fizz (buzz baz)');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('<implicit>');
       expect(results['parenthesized']).to.equal(undefined);
 
-      var rightNode = results['right'];
+      const rightNode = results['right'];
 
       expect(rightNode['left']['term']).to.equal('buzz');
       expect(rightNode['operator']).to.equal('<implicit>');
@@ -274,12 +276,12 @@ describe('queryParser', () => {
     });
 
     it('parses parentheses groups with explicit conjunction operators ', () => {
-      var results = lucene.parse('fizz AND (buzz OR baz)');
+      const results = lucene.parse('fizz AND (buzz OR baz)');
 
       expect(results['left']['term']).to.equal('fizz');
       expect(results['operator']).to.equal('AND');
 
-      var rightNode = results['right'];
+      const rightNode = results['right'];
 
       expect(rightNode['left']['term']).to.equal('buzz');
       expect(rightNode['operator']).to.equal('OR');
@@ -290,7 +292,7 @@ describe('queryParser', () => {
   describe('range expressions', () => {
 
     it('parses inclusive range expression', () => {
-      var results = lucene.parse('foo:[bar TO baz]');
+      const results = lucene.parse('foo:[bar TO baz]');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
@@ -299,7 +301,7 @@ describe('queryParser', () => {
     });
 
     it('parses exclusive range expression', () => {
-      var results = lucene.parse('foo:{bar TO baz}');
+      const results = lucene.parse('foo:{bar TO baz}');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
@@ -308,7 +310,7 @@ describe('queryParser', () => {
     });
 
     it('parses mixed range expression (left inclusive)', () => {
-      var results = lucene.parse('foo:[bar TO baz}');
+      const results = lucene.parse('foo:[bar TO baz}');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
@@ -317,7 +319,7 @@ describe('queryParser', () => {
     });
 
     it('parses mixed range expression (right inclusive)', () => {
-      var results = lucene.parse('foo:{bar TO baz]');
+      const results = lucene.parse('foo:{bar TO baz]');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
@@ -326,7 +328,7 @@ describe('queryParser', () => {
     });
 
     it('handles quoted terms in range', () => {
-      var results = lucene.parse('foo:{"1000" TO "1001"]');
+      const results = lucene.parse('foo:{"1000" TO "1001"]');
 
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('"1000"');
@@ -335,7 +337,7 @@ describe('queryParser', () => {
     });
 
     it('parses mixed range expression (right inclusive) with date ISO format', () => {
-      var results = lucene.parse('date:{2017-11-17T01:32:45.123Z TO 2017-11-18T04:28:11.999Z]');
+      const results = lucene.parse('date:{2017-11-17T01:32:45.123Z TO 2017-11-18T04:28:11.999Z]');
 
       expect(results['left']['field']).to.equal('date');
       expect(results['left']['term_min']).to.equal('2017-11-17T01:32:45.123Z');
@@ -345,7 +347,7 @@ describe('queryParser', () => {
 
     describe('single-sided range expressions', function() {
       it('parses a left inclusive range', () => {
-        var results = lucene.parse('foo:>=42');
+        const results = lucene.parse('foo:>=42');
 
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('42');
@@ -354,7 +356,7 @@ describe('queryParser', () => {
       });
 
       it('parses a left exclusive range', () => {
-        var results = lucene.parse('foo:>42');
+        const results = lucene.parse('foo:>42');
 
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('42');
@@ -363,7 +365,7 @@ describe('queryParser', () => {
       });
 
       it('parses a right inclusive range', () => {
-        var results = lucene.parse('foo:<=42');
+        const results = lucene.parse('foo:<=42');
 
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('<implicit>');
@@ -372,7 +374,7 @@ describe('queryParser', () => {
       });
 
       it('parses a right exclusive range', () => {
-        var results = lucene.parse('foo:<42');
+        const results = lucene.parse('foo:<42');
 
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('<implicit>');
@@ -381,7 +383,7 @@ describe('queryParser', () => {
       });
 
       it('parses date math', () => {
-        var results = lucene.parse('foo:>now+5d');
+        const results = lucene.parse('foo:>now+5d');
 
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('now+5d');
@@ -428,7 +430,7 @@ describe('queryParser', () => {
     */
 
     it('parses example: title:"The Right Way" AND text:go', () => {
-      var results = lucene.parse('title:"The Right Way" AND text:go');
+      const results = lucene.parse('title:"The Right Way" AND text:go');
 
       expect(results['left']['field']).to.equal('title');
       expect(results['left']['term']).to.equal('The Right Way');
@@ -438,7 +440,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: title:"Do it right" AND right', () => {
-      var results = lucene.parse('title:"Do it right" AND right');
+      const results = lucene.parse('title:"Do it right" AND right');
 
       expect(results['left']['field']).to.equal('title');
       expect(results['left']['term']).to.equal('Do it right');
@@ -448,13 +450,13 @@ describe('queryParser', () => {
     });
 
     it('parses example: title:Do it right', () => {
-      var results = lucene.parse('title:Do it right');
+      const results = lucene.parse('title:Do it right');
 
       expect(results['left']['field']).to.equal('title');
       expect(results['left']['term']).to.equal('Do');
       expect(results['operator']).to.equal('<implicit>');
 
-      var rightNode = results['right'];
+      const rightNode = results['right'];
 
       expect(rightNode['left']['field']).to.equal('<implicit>');
       expect(rightNode['left']['term']).to.equal('it');
@@ -465,28 +467,28 @@ describe('queryParser', () => {
     });
 
     it('parses example: te?t', () => {
-      var results = lucene.parse('te?t');
+      const results = lucene.parse('te?t');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('te?t');
     });
 
     it('parses example: test*', () => {
-      var results = lucene.parse('test*');
+      const results = lucene.parse('test*');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('test*');
     });
 
     it('parses example: te*t', () => {
-      var results = lucene.parse('te*t');
+      const results = lucene.parse('te*t');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('te*t');
     });
 
     it('parses example: roam~', () => {
-      var results = lucene.parse('roam~');
+      const results = lucene.parse('roam~');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('roam');
@@ -494,7 +496,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: roam~0.8', () => {
-      var results = lucene.parse('roam~0.8');
+      const results = lucene.parse('roam~0.8');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('roam');
@@ -502,7 +504,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache"~10', () => {
-      var results = lucene.parse('"jakarta apache"~10');
+      const results = lucene.parse('"jakarta apache"~10');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -510,7 +512,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: mod_date:[20020101 TO 20030101]', () => {
-      var results = lucene.parse('mod_date:[20020101 TO 20030101]');
+      const results = lucene.parse('mod_date:[20020101 TO 20030101]');
 
       expect(results['left']['field']).to.equal('mod_date');
       expect(results['left']['term_min']).to.equal('20020101');
@@ -519,7 +521,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: title:{Aida TO Carmen}', () => {
-      var results = lucene.parse('title:{Aida TO Carmen}');
+      const results = lucene.parse('title:{Aida TO Carmen}');
 
       expect(results['left']['field']).to.equal('title');
       expect(results['left']['term_min']).to.equal('Aida');
@@ -528,7 +530,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: jakarta apache', () => {
-      var results = lucene.parse('jakarta apache');
+      const results = lucene.parse('jakarta apache');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta');
@@ -538,7 +540,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: jakarta^4 apache', () => {
-      var results = lucene.parse('jakarta^4 apache');
+      const results = lucene.parse('jakarta^4 apache');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta');
@@ -549,7 +551,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache"^4 "Apache Lucene"', () => {
-      var results = lucene.parse('"jakarta apache"^4 "Apache Lucene"');
+      const results = lucene.parse('"jakarta apache"^4 "Apache Lucene"');
 
 
       expect(results['left']['field']).to.equal('<implicit>');
@@ -562,7 +564,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache" jakarta', () => {
-      var results = lucene.parse('"jakarta apache" jakarta');
+      const results = lucene.parse('"jakarta apache" jakarta');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -572,7 +574,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache" OR jakarta', () => {
-      var results = lucene.parse('"jakarta apache" OR jakarta');
+      const results = lucene.parse('"jakarta apache" OR jakarta');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -582,7 +584,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache" AND "Apache Lucene"', () => {
-      var results = lucene.parse('"jakarta apache" AND "Apache Lucene"');
+      const results = lucene.parse('"jakarta apache" AND "Apache Lucene"');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -592,7 +594,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: +jakarta lucene', () => {
-      var results = lucene.parse('+jakarta lucene');
+      const results = lucene.parse('+jakarta lucene');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta');
@@ -600,7 +602,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache" NOT "Apache Lucene"', () => {
-      var results = lucene.parse('"jakarta apache" NOT "Apache Lucene"');
+      const results = lucene.parse('"jakarta apache" NOT "Apache Lucene"');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -610,7 +612,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: NOT "jakarta apache"', () => {
-      var results = lucene.parse('NOT "jakarta apache"');
+      const results = lucene.parse('NOT "jakarta apache"');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -620,7 +622,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: "jakarta apache" -"Apache Lucene"', () => {
-      var results = lucene.parse('"jakarta apache" -"Apache Lucene"');
+      const results = lucene.parse('"jakarta apache" -"Apache Lucene"');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('jakarta apache');
@@ -631,8 +633,8 @@ describe('queryParser', () => {
     });
 
     it('parses example: (jakarta OR apache) AND website', () => {
-      var results = lucene.parse('(jakarta OR apache) AND website');
-      var leftNode = results['left'];
+      const results = lucene.parse('(jakarta OR apache) AND website');
+      const leftNode = results['left'];
 
       expect(leftNode['left']['field']).to.equal('<implicit>');
       expect(leftNode['left']['term']).to.equal('jakarta');
@@ -646,8 +648,8 @@ describe('queryParser', () => {
     });
 
     it('parses example: title:(+return +"pink panther")', () => {
-      var results = lucene.parse('title:(+return +"pink panther")');
-      var leftNode = results['left'];
+      const results = lucene.parse('title:(+return +"pink panther")');
+      const leftNode = results['left'];
 
       expect(leftNode['left']['field']).to.equal('<implicit>');
       expect(leftNode['left']['term']).to.equal('return');
@@ -660,7 +662,7 @@ describe('queryParser', () => {
     });
 
     it('parses example: java AND NOT yamaha', () => {
-      var results = lucene.parse('java AND NOT yamaha');
+      const results = lucene.parse('java AND NOT yamaha');
 
       expect(results['left']['field']).to.equal('<implicit>');
       expect(results['left']['term']).to.equal('java');
@@ -670,8 +672,8 @@ describe('queryParser', () => {
     });
 
     it('parses example: NOT (java OR python) AND android', () => {
-      var results = lucene.parse('NOT (java OR python) AND android');
-      var leftNode = results['left'];
+      const results = lucene.parse('NOT (java OR python) AND android');
+      const leftNode = results['left'];
 
       expect(results['start']).to.equal('NOT');
 
@@ -687,7 +689,7 @@ describe('queryParser', () => {
     });
 
     it('must handle whitespace in parens', () => {
-      var result = lucene.parse('foo ( bar OR baz)');
+      const result = lucene.parse('foo ( bar OR baz)');
       expect(result.left.field).to.equal('<implicit>');
       expect(result.left.term).to.equal('foo');
       expect(result.operator).to.equal('<implicit>');
@@ -709,19 +711,19 @@ describe('queryParser', () => {
 
   describe('escaped sequences in quoted terms', () => {
     it('must support simple quote escape', () => {
-      var results = lucene.parse('foo:"a\\"b"');
+      const results = lucene.parse('foo:"a\\"b"');
       expect(results.left.field).to.equal('foo');
       expect(results.left.term).to.equal('a\\"b');
     });
 
     it('must support multiple quoted terms', () => {
-      var results = lucene.parse('"a\\"b" "c\\"d"');
+      const results = lucene.parse('"a\\"b" "c\\"d"');
       expect(results.left.term).to.equal('a\\"b');
       expect(results.right.term).to.equal('c\\"d');
     });
 
     it('must correctly escapes other reserved characters', () => {
-      var results = lucene.parse('"a\\:b" "c\\~d\\+\\-\\?\\*"');
+      const results = lucene.parse('"a\\:b" "c\\~d\\+\\-\\?\\*"');
       expect(results.left.term).to.equal('a\\:b');
       expect(results.right.term).to.equal('c\\~d\\+\\-\\?\\*');
     });
@@ -729,23 +731,23 @@ describe('queryParser', () => {
 
   describe('escaped sequences in unquoted terms', () => {
     it('must escape a + character', () => {
-      var results = lucene.parse('foo\\: asdf');
+      const results = lucene.parse('foo\\: asdf');
       expect(results.left.term).to.equal('foo\\:');
       expect(results.right.term).to.equal('asdf');
     });
 
     it('must escape brackets, braces, and parenthesis characters', () => {
-      var results = lucene.parse('a\\(b\\)\\{c\\}\\[d\\]e');
+      const results = lucene.parse('a\\(b\\)\\{c\\}\\[d\\]e');
       expect(results.left.term).to.equal('a\\(b\\)\\{c\\}\\[d\\]e');
     });
 
     it('must respect quoted whitespace', () => {
-      var results = lucene.parse('foo:a\\ b');
+      const results = lucene.parse('foo:a\\ b');
       expect(results.left.term).to.equal('a\\ b');
     });
 
     it('must respect quoted and unquoted whitespace', () => {
-      var results = lucene.parse('foo:a\\ b c\\ d');
+      const results = lucene.parse('foo:a\\ b c\\ d');
       expect(results.left.term).to.equal('a\\ b');
       expect(results.right.term).to.equal('c\\ d');
     });
@@ -753,7 +755,7 @@ describe('queryParser', () => {
 
   describe('escaped sequences field names', () => {
     it('escape', () => {
-      var results = lucene.parse('foo\\~bar: asdf');
+      const results = lucene.parse('foo\\~bar: asdf');
       expect(results.left.field).to.equal('foo\\~bar');
       expect(results.left.term).to.equal('asdf');
     });
@@ -761,7 +763,7 @@ describe('queryParser', () => {
 
   describe('position information', () => {
     it('retains position information', () => {
-      var results = lucene.parse('test:Foo');
+      const results = lucene.parse('test:Foo');
       expect(results['left']['fieldLocation'].start.offset).to.equal(0);
       expect(results['left']['fieldLocation'].end.offset).to.equal(4);
       expect(results['left']['termLocation'].start.offset).to.equal(5);
