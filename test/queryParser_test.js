@@ -297,7 +297,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
       expect(results['left']['term_max']).to.equal('baz');
-      expect(results['left']['inclusive']).to.equal('both');
+      expect(results['left']['min_inclusive']).to.equal(true);
+      expect(results['left']['max_inclusive']).to.equal(true);
     });
 
     it('parses exclusive range expression', () => {
@@ -306,7 +307,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
       expect(results['left']['term_max']).to.equal('baz');
-      expect(results['left']['inclusive']).to.equal('none');
+      expect(results['left']['min_inclusive']).to.equal(false);
+      expect(results['left']['max_inclusive']).to.equal(false);
     });
 
     it('parses mixed range expression (left inclusive)', () => {
@@ -315,7 +317,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
       expect(results['left']['term_max']).to.equal('baz');
-      expect(results['left']['inclusive']).to.equal('left');
+      expect(results['left']['min_inclusive']).to.equal(true);
+      expect(results['left']['max_inclusive']).to.equal(false);
     });
 
     it('parses mixed range expression (right inclusive)', () => {
@@ -324,7 +327,18 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('bar');
       expect(results['left']['term_max']).to.equal('baz');
-      expect(results['left']['inclusive']).to.equal('right');
+      expect(results['left']['min_inclusive']).to.equal(false);
+      expect(results['left']['max_inclusive']).to.equal(true);
+    });
+
+    it('parses ranges with spaces', () => {
+      const results = lucene.parse('foo:{ bar TO baz      ]');
+
+      expect(results['left']['field']).to.equal('foo');
+      expect(results['left']['term_min']).to.equal('bar');
+      expect(results['left']['term_max']).to.equal('baz');
+      expect(results['left']['min_inclusive']).to.equal(false);
+      expect(results['left']['max_inclusive']).to.equal(true);
     });
 
     it('handles quoted terms in range', () => {
@@ -333,7 +347,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('foo');
       expect(results['left']['term_min']).to.equal('"1000"');
       expect(results['left']['term_max']).to.equal('"1001"');
-      expect(results['left']['inclusive']).to.equal('right');
+      expect(results['left']['min_inclusive']).to.equal(false);
+      expect(results['left']['max_inclusive']).to.equal(true);
     });
 
     it('parses mixed range expression (right inclusive) with date ISO format', () => {
@@ -342,7 +357,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('date');
       expect(results['left']['term_min']).to.equal('2017-11-17T01:32:45.123Z');
       expect(results['left']['term_max']).to.equal('2017-11-18T04:28:11.999Z');
-      expect(results['left']['inclusive']).to.equal('right');
+      expect(results['left']['min_inclusive']).to.equal(false);
+      expect(results['left']['max_inclusive']).to.equal(true);
     });
 
     describe('single-sided range expressions', function() {
@@ -352,7 +368,8 @@ describe('queryParser', () => {
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('42');
         expect(results['left']['term_max']).to.equal('<implicit>');
-        expect(results['left']['inclusive']).to.equal('left');
+        expect(results['left']['min_inclusive']).to.equal(true);
+        expect(results['left']['max_inclusive']).to.equal(true);
       });
 
       it('parses a left exclusive range', () => {
@@ -361,7 +378,8 @@ describe('queryParser', () => {
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('42');
         expect(results['left']['term_max']).to.equal('<implicit>');
-        expect(results['left']['inclusive']).to.equal('none');
+        expect(results['left']['min_inclusive']).to.equal(false);
+        expect(results['left']['max_inclusive']).to.equal(true);
       });
 
       it('parses a right inclusive range', () => {
@@ -370,7 +388,8 @@ describe('queryParser', () => {
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('<implicit>');
         expect(results['left']['term_max']).to.equal('42');
-        expect(results['left']['inclusive']).to.equal('right');
+        expect(results['left']['min_inclusive']).to.equal(true);
+        expect(results['left']['max_inclusive']).to.equal(true);
       });
 
       it('parses a right exclusive range', () => {
@@ -379,7 +398,8 @@ describe('queryParser', () => {
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('<implicit>');
         expect(results['left']['term_max']).to.equal('42');
-        expect(results['left']['inclusive']).to.equal('none');
+        expect(results['left']['min_inclusive']).to.equal(true);
+        expect(results['left']['max_inclusive']).to.equal(false);
       });
 
       it('parses date math', () => {
@@ -388,7 +408,8 @@ describe('queryParser', () => {
         expect(results['left']['field']).to.equal('foo');
         expect(results['left']['term_min']).to.equal('now+5d');
         expect(results['left']['term_max']).to.equal('<implicit>');
-        expect(results['left']['inclusive']).to.equal('none');
+        expect(results['left']['min_inclusive']).to.equal(false);
+        expect(results['left']['max_inclusive']).to.equal(true);
       });
     });
   });
@@ -517,7 +538,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('mod_date');
       expect(results['left']['term_min']).to.equal('20020101');
       expect(results['left']['term_max']).to.equal('20030101');
-      expect(results['left']['inclusive']).to.equal('both');
+      expect(results['left']['min_inclusive']).to.equal(true);
+      expect(results['left']['max_inclusive']).to.equal(true);
     });
 
     it('parses example: title:{Aida TO Carmen}', () => {
@@ -526,7 +548,8 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('title');
       expect(results['left']['term_min']).to.equal('Aida');
       expect(results['left']['term_max']).to.equal('Carmen');
-      expect(results['left']['inclusive']).to.equal('none');
+      expect(results['left']['min_inclusive']).to.equal(false);
+      expect(results['left']['max_inclusive']).to.equal(false);
     });
 
     it('parses example: jakarta apache', () => {
@@ -768,6 +791,16 @@ describe('queryParser', () => {
       expect(results['left']['fieldLocation'].end.offset).to.equal(4);
       expect(results['left']['termLocation'].start.offset).to.equal(5);
       expect(results['left']['termLocation'].end.offset).to.equal(8);
+    });
+
+    it('retains range position information', () => {
+      const results = lucene.parse('test:[200 TO     500]');
+      expect(results['left']['fieldLocation'].start.offset).to.equal(0);
+      expect(results['left']['fieldLocation'].end.offset).to.equal(4);
+      expect(results['left']['term_min_location'].start.offset).to.equal(6);
+      expect(results['left']['term_min_location'].end.offset).to.equal(9);
+      expect(results['left']['term_max_location'].start.offset).to.equal(17);
+      expect(results['left']['term_max_location'].end.offset).to.equal(20);
     });
   });
 });

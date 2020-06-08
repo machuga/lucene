@@ -23,6 +23,7 @@
  * A node expression generally has the following structure:
  *
  * {
+ *
  *     'left' : dictionary,     // field expression or node
  *     'operator': string,      // operator value
  *     'right': dictionary,     // field expression OR node
@@ -35,6 +36,7 @@
  * A field expression has the following structure:
  *
  * {
+ *     'kind': 'term',
  *     'field': string,         // field name
  *     'term': string,          // term value
  *     'quoted': boolean,       // whether or not the value was quoted in the input string
@@ -49,6 +51,7 @@
  * A range expression has the following structure:
  *
  * {
+ *     'kind': 'range',
  *     'field': string,         // field name
  *     'term_min': string,      // minimum value (left side) of range
  *     'term_max': string,      // maximum value (right side) of range
@@ -125,20 +128,19 @@ Node
     }
   / left:GroupExpr operator:OperatorExpr* right:Node*
     {
-        var node = {
-            'left':left
-        };
+        var node = { left };
 
-        var right =
-                right.length == 0
-                ? null
-                : right[0]['right'] == null
-                    ? right[0]['left']
-                    : right[0];
+        var rightNode = null;
 
-        if (right != null) {
-            node['operator'] = operator == '' ? '<implicit>' : operator[0];
-            node['right'] = right;
+        if (right.length > 0) {
+          if (right[0]['right']) {
+            rightNode = right[0];
+          } else {
+            rightNode = right[0]['left'];
+          }
+
+          node['operator'] = operator == '' ? '<implicit>' : operator[0];
+          node['right'] = rightNode;
         }
 
         return node;
@@ -299,7 +301,10 @@ RangedTermChar
 RangedTerm
   = term:RangedTermChar+
     {
-        return term.join('');
+        return {
+          value: term.join(''),
+          location: location()
+        };
     }
 
 UnquotedTerm
@@ -364,37 +369,25 @@ IntExpr
         return parseInt(val.join(''));
     }
 
+
+RangeOpenOperator
+  = '['
+  / '{'
+
+RangeCloseOperator
+  = ']'
+  / '}'
+
 RangeOperatorExpr
-  = '[' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm ']'
+  = range_open:RangeOpenOperator _* term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm _* range_close:RangeCloseOperator
     {
         return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'both'
-        };
-    }
-  / '{' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm '}'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'none'
-        };
-    }
-  / '[' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm '}'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'left'
-        };
-    }
-  / '{' term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm ']'
-    {
-        return {
-            'term_min': term_min,
-            'term_max': term_max,
-            'inclusive': 'right'
+            'term_min': term_min.value,
+            'term_min_location': term_min.location,
+            'term_max': term_max.value,
+            'term_max_location': term_max.location,
+            'min_inclusive': range_open === '[',
+            'max_inclusive': range_close === ']'
         };
     }
 
@@ -403,15 +396,19 @@ SingleRangeOperatorExpr
     {
       if (op.startsWith('>')) {
         return {
-            'term_min': term,
+            'term_min': term.value,
+            'term_min_location': term.location,
+            'min_inclusive': op.length > 1,
             'term_max': '<implicit>',
-            'inclusive': op.length > 1 ? 'left' : 'none'
+            'max_inclusive': true
         };
       } else {
         return {
             'term_min': '<implicit>',
-            'term_max': term,
-            'inclusive': op.length > 1 ? 'right' : 'none'
+            'min_inclusive': true,
+            'term_max': term.value,
+            'term_max_location': term.location,
+            'max_inclusive': op.length > 1,
         };
       }
     }
