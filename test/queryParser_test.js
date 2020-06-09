@@ -62,6 +62,7 @@ describe('queryParser', () => {
 
     it('parses regex terms', () => {
       const results = lucene.parse('/f[A-z]?o*/');
+
       expect(results['left']['term']).to.equal('f[A-z]?o*');
       expect(results['left']['quoted']).to.be.false;
       expect(results['left']['regex']).to.be.true;
@@ -69,6 +70,7 @@ describe('queryParser', () => {
 
     it('parses regex terms with escape sequences', () => {
       const results = lucene.parse('/f[A-z]?\\/o*/');
+
       expect(results['left']['term']).to.equal('f[A-z]?\\/o*');
       expect(results['left']['quoted']).to.be.false;
       expect(results['left']['regex']).to.be.true;
@@ -133,7 +135,6 @@ describe('queryParser', () => {
   });
 
   describe('field name support', () => {
-
     it('parses implicit field name for term', () => {
       const results = lucene.parse('bar');
 
@@ -168,7 +169,6 @@ describe('queryParser', () => {
       expect(results['left']['field']).to.equal('sub.foo');
       expect(results['left']['term']).to.equal('bar');
     });
-
 
     it('parses explicit field name for quoted term', () => {
       const results = lucene.parse('foo:"fizz buzz"');
@@ -472,12 +472,12 @@ describe('queryParser', () => {
 
     it('parses example: title:Do it right', () => {
       const results = lucene.parse('title:Do it right');
+      const rightNode = results['right'];
 
       expect(results['left']['field']).to.equal('title');
       expect(results['left']['term']).to.equal('Do');
       expect(results['operator']).to.equal('<implicit>');
 
-      const rightNode = results['right'];
 
       expect(rightNode['left']['field']).to.equal('<implicit>');
       expect(rightNode['left']['term']).to.equal('it');
@@ -713,6 +713,7 @@ describe('queryParser', () => {
 
     it('must handle whitespace in parens', () => {
       const result = lucene.parse('foo ( bar OR baz)');
+
       expect(result.left.field).to.equal('<implicit>');
       expect(result.left.term).to.equal('foo');
       expect(result.operator).to.equal('<implicit>');
@@ -735,18 +736,21 @@ describe('queryParser', () => {
   describe('escaped sequences in quoted terms', () => {
     it('must support simple quote escape', () => {
       const results = lucene.parse('foo:"a\\"b"');
+
       expect(results.left.field).to.equal('foo');
       expect(results.left.term).to.equal('a\\"b');
     });
 
     it('must support multiple quoted terms', () => {
       const results = lucene.parse('"a\\"b" "c\\"d"');
+
       expect(results.left.term).to.equal('a\\"b');
       expect(results.right.term).to.equal('c\\"d');
     });
 
     it('must correctly escapes other reserved characters', () => {
       const results = lucene.parse('"a\\:b" "c\\~d\\+\\-\\?\\*"');
+
       expect(results.left.term).to.equal('a\\:b');
       expect(results.right.term).to.equal('c\\~d\\+\\-\\?\\*');
     });
@@ -755,6 +759,7 @@ describe('queryParser', () => {
   describe('escaped sequences in unquoted terms', () => {
     it('must escape a + character', () => {
       const results = lucene.parse('foo\\: asdf');
+
       expect(results.left.term).to.equal('foo\\:');
       expect(results.right.term).to.equal('asdf');
     });
@@ -766,11 +771,13 @@ describe('queryParser', () => {
 
     it('must respect quoted whitespace', () => {
       const results = lucene.parse('foo:a\\ b');
+
       expect(results.left.term).to.equal('a\\ b');
     });
 
     it('must respect quoted and unquoted whitespace', () => {
       const results = lucene.parse('foo:a\\ b c\\ d');
+
       expect(results.left.term).to.equal('a\\ b');
       expect(results.right.term).to.equal('c\\ d');
     });
@@ -779,6 +786,7 @@ describe('queryParser', () => {
   describe('escaped sequences field names', () => {
     it('escape', () => {
       const results = lucene.parse('foo\\~bar: asdf');
+
       expect(results.left.field).to.equal('foo\\~bar');
       expect(results.left.term).to.equal('asdf');
     });
@@ -787,6 +795,7 @@ describe('queryParser', () => {
   describe('position information', () => {
     it('retains position information', () => {
       const results = lucene.parse('test:Foo');
+
       expect(results['left']['fieldLocation'].start.offset).to.equal(0);
       expect(results['left']['fieldLocation'].end.offset).to.equal(4);
       expect(results['left']['termLocation'].start.offset).to.equal(5);
@@ -795,6 +804,7 @@ describe('queryParser', () => {
 
     it('retains range position information', () => {
       const results = lucene.parse('test:[200 TO     500]');
+
       expect(results['left']['fieldLocation'].start.offset).to.equal(0);
       expect(results['left']['fieldLocation'].end.offset).to.equal(4);
       expect(results['left']['term_min_location'].start.offset).to.equal(6);
