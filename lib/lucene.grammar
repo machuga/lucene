@@ -162,7 +162,7 @@ ParenExpr
 FieldExpr
   = op:PrefixOperatorExpr? fieldname:FieldName range:SingleRangeOperatorExpr
     {
-      range.field = fieldname.label;
+      range.field = fieldname.name;
       range.fieldLocation = fieldname.location;
 
       if ('' != op) {
@@ -174,11 +174,11 @@ FieldExpr
   / op:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
     {
       range.field =
-          fieldname == null || fieldname.label == ''
+          fieldname == null || fieldname.name == ''
               ? "<implicit>"
-              : fieldname.label;
+              : fieldname.name;
       range.fieldLocation =
-      fieldname == null || fieldname.label == ''
+      fieldname == null || fieldname.name == ''
           ? null
           : fieldname.location;
 
@@ -190,7 +190,7 @@ FieldExpr
     }
   / op:PrefixOperatorExpr? fieldname:FieldName node:ParenExpr
     {
-        node.field = fieldname.label;
+        node.field = fieldname.name;
         node.fieldLocation = fieldname.location;
 
         if ('' != op) {
@@ -203,11 +203,11 @@ FieldExpr
     {
       let fieldexp = {
           field:
-              fieldname == null || fieldname.label == ''
+              fieldname == null || fieldname.name == ''
                   ? "<implicit>"
-                  : fieldname.label,
+                  : fieldname.name,
           fieldLocation:
-              fieldname == null || fieldname.label == ''
+              fieldname == null || fieldname.name == ''
                   ? null
                   : fieldname.location,
 
@@ -229,7 +229,7 @@ FieldName
   = fieldname:UnquotedTerm [:] _*
     {
       return {
-        label: fieldname.label,
+        name: fieldname.value,
         location: fieldname.location
       };
     }
@@ -268,7 +268,7 @@ Term
   / op:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
     {
       let result = {
-        term: term.label,
+        term: term.value,
         quoted: false,
         regex: false,
         termLocation: location()
@@ -307,7 +307,7 @@ UnquotedTerm
   = term:TermChar+
     {
       return {
-        label: term.join(''),
+        value: term.join(''),
         location: location(),
       };
     }
