@@ -290,75 +290,74 @@ describe('queryParser', () => {
   });
 
   describe('range expressions', () => {
-
     it('parses inclusive range expression', () => {
       const results = lucene.parse('foo:[bar TO baz]');
 
       expect(results.left.field).to.equal('foo');
-      expect(results.left.term_min).to.equal('bar');
-      expect(results.left.term_max).to.equal('baz');
-      expect(results.left.min_inclusive).to.equal(true);
-      expect(results.left.max_inclusive).to.equal(true);
+      expect(results.left.termMin).to.equal('bar');
+      expect(results.left.termMax).to.equal('baz');
+      expect(results.left.minInclusive).to.equal(true);
+      expect(results.left.maxInclusive).to.equal(true);
     });
 
     it('parses exclusive range expression', () => {
       const results = lucene.parse('foo:{bar TO baz}');
 
       expect(results.left.field).to.equal('foo');
-      expect(results.left.term_min).to.equal('bar');
-      expect(results.left.term_max).to.equal('baz');
-      expect(results.left.min_inclusive).to.equal(false);
-      expect(results.left.max_inclusive).to.equal(false);
+      expect(results.left.termMin).to.equal('bar');
+      expect(results.left.termMax).to.equal('baz');
+      expect(results.left.minInclusive).to.equal(false);
+      expect(results.left.maxInclusive).to.equal(false);
     });
 
     it('parses mixed range expression (left inclusive)', () => {
       const results = lucene.parse('foo:[bar TO baz}');
 
       expect(results.left.field).to.equal('foo');
-      expect(results.left.term_min).to.equal('bar');
-      expect(results.left.term_max).to.equal('baz');
-      expect(results.left.min_inclusive).to.equal(true);
-      expect(results.left.max_inclusive).to.equal(false);
+      expect(results.left.termMin).to.equal('bar');
+      expect(results.left.termMax).to.equal('baz');
+      expect(results.left.minInclusive).to.equal(true);
+      expect(results.left.maxInclusive).to.equal(false);
     });
 
     it('parses mixed range expression (right inclusive)', () => {
       const results = lucene.parse('foo:{bar TO baz]');
 
       expect(results.left.field).to.equal('foo');
-      expect(results.left.term_min).to.equal('bar');
-      expect(results.left.term_max).to.equal('baz');
-      expect(results.left.min_inclusive).to.equal(false);
-      expect(results.left.max_inclusive).to.equal(true);
+      expect(results.left.termMin).to.equal('bar');
+      expect(results.left.termMax).to.equal('baz');
+      expect(results.left.minInclusive).to.equal(false);
+      expect(results.left.maxInclusive).to.equal(true);
     });
 
     it('parses ranges with spaces', () => {
       const results = lucene.parse('foo:{ bar TO baz      ]');
 
       expect(results.left.field).to.equal('foo');
-      expect(results.left.term_min).to.equal('bar');
-      expect(results.left.term_max).to.equal('baz');
-      expect(results.left.min_inclusive).to.equal(false);
-      expect(results.left.max_inclusive).to.equal(true);
+      expect(results.left.termMin).to.equal('bar');
+      expect(results.left.termMax).to.equal('baz');
+      expect(results.left.minInclusive).to.equal(false);
+      expect(results.left.maxInclusive).to.equal(true);
     });
 
     it('handles quoted terms in range', () => {
       const results = lucene.parse('foo:{"1000" TO "1001"]');
 
       expect(results.left.field).to.equal('foo');
-      expect(results.left.term_min).to.equal('"1000"');
-      expect(results.left.term_max).to.equal('"1001"');
-      expect(results.left.min_inclusive).to.equal(false);
-      expect(results.left.max_inclusive).to.equal(true);
+      expect(results.left.termMin).to.equal('"1000"');
+      expect(results.left.termMax).to.equal('"1001"');
+      expect(results.left.minInclusive).to.equal(false);
+      expect(results.left.maxInclusive).to.equal(true);
     });
 
     it('parses mixed range expression (right inclusive) with date ISO format', () => {
       const results = lucene.parse('date:{2017-11-17T01:32:45.123Z TO 2017-11-18T04:28:11.999Z]');
 
       expect(results.left.field).to.equal('date');
-      expect(results.left.term_min).to.equal('2017-11-17T01:32:45.123Z');
-      expect(results.left.term_max).to.equal('2017-11-18T04:28:11.999Z');
-      expect(results.left.min_inclusive).to.equal(false);
-      expect(results.left.max_inclusive).to.equal(true);
+      expect(results.left.termMin).to.equal('2017-11-17T01:32:45.123Z');
+      expect(results.left.termMax).to.equal('2017-11-18T04:28:11.999Z');
+      expect(results.left.minInclusive).to.equal(false);
+      expect(results.left.maxInclusive).to.equal(true);
     });
 
     describe('single-sided range expressions', function() {
@@ -366,50 +365,50 @@ describe('queryParser', () => {
         const results = lucene.parse('foo:>=42');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.term_min).to.equal('42');
-        expect(results.left.term_max).to.equal('<implicit>');
-        expect(results.left.min_inclusive).to.equal(true);
-        expect(results.left.max_inclusive).to.equal(true);
+        expect(results.left.termMin).to.equal('42');
+        expect(results.left.termMax).to.equal('<implicit>');
+        expect(results.left.minInclusive).to.equal(true);
+        expect(results.left.maxInclusive).to.equal(true);
       });
 
       it('parses a left exclusive range', () => {
         const results = lucene.parse('foo:>42');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.term_min).to.equal('42');
-        expect(results.left.term_max).to.equal('<implicit>');
-        expect(results.left.min_inclusive).to.equal(false);
-        expect(results.left.max_inclusive).to.equal(true);
+        expect(results.left.termMin).to.equal('42');
+        expect(results.left.termMax).to.equal('<implicit>');
+        expect(results.left.minInclusive).to.equal(false);
+        expect(results.left.maxInclusive).to.equal(true);
       });
 
       it('parses a right inclusive range', () => {
         const results = lucene.parse('foo:<=42');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.term_min).to.equal('<implicit>');
-        expect(results.left.term_max).to.equal('42');
-        expect(results.left.min_inclusive).to.equal(true);
-        expect(results.left.max_inclusive).to.equal(true);
+        expect(results.left.termMin).to.equal('<implicit>');
+        expect(results.left.termMax).to.equal('42');
+        expect(results.left.minInclusive).to.equal(true);
+        expect(results.left.maxInclusive).to.equal(true);
       });
 
       it('parses a right exclusive range', () => {
         const results = lucene.parse('foo:<42');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.term_min).to.equal('<implicit>');
-        expect(results.left.term_max).to.equal('42');
-        expect(results.left.min_inclusive).to.equal(true);
-        expect(results.left.max_inclusive).to.equal(false);
+        expect(results.left.termMin).to.equal('<implicit>');
+        expect(results.left.termMax).to.equal('42');
+        expect(results.left.minInclusive).to.equal(true);
+        expect(results.left.maxInclusive).to.equal(false);
       });
 
       it('parses date math', () => {
         const results = lucene.parse('foo:>now+5d');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.term_min).to.equal('now+5d');
-        expect(results.left.term_max).to.equal('<implicit>');
-        expect(results.left.min_inclusive).to.equal(false);
-        expect(results.left.max_inclusive).to.equal(true);
+        expect(results.left.termMin).to.equal('now+5d');
+        expect(results.left.termMax).to.equal('<implicit>');
+        expect(results.left.minInclusive).to.equal(false);
+        expect(results.left.maxInclusive).to.equal(true);
       });
     });
   });
@@ -536,20 +535,20 @@ describe('queryParser', () => {
       const results = lucene.parse('mod_date:[20020101 TO 20030101]');
 
       expect(results.left.field).to.equal('mod_date');
-      expect(results.left.term_min).to.equal('20020101');
-      expect(results.left.term_max).to.equal('20030101');
-      expect(results.left.min_inclusive).to.equal(true);
-      expect(results.left.max_inclusive).to.equal(true);
+      expect(results.left.termMin).to.equal('20020101');
+      expect(results.left.termMax).to.equal('20030101');
+      expect(results.left.minInclusive).to.equal(true);
+      expect(results.left.maxInclusive).to.equal(true);
     });
 
     it('parses example: title:{Aida TO Carmen}', () => {
       const results = lucene.parse('title:{Aida TO Carmen}');
 
       expect(results.left.field).to.equal('title');
-      expect(results.left.term_min).to.equal('Aida');
-      expect(results.left.term_max).to.equal('Carmen');
-      expect(results.left.min_inclusive).to.equal(false);
-      expect(results.left.max_inclusive).to.equal(false);
+      expect(results.left.termMin).to.equal('Aida');
+      expect(results.left.termMax).to.equal('Carmen');
+      expect(results.left.minInclusive).to.equal(false);
+      expect(results.left.maxInclusive).to.equal(false);
     });
 
     it('parses example: jakarta apache', () => {
@@ -807,10 +806,10 @@ describe('queryParser', () => {
 
       expect(results.left.fieldLocation.start.offset).to.equal(0);
       expect(results.left.fieldLocation.end.offset).to.equal(4);
-      expect(results.left.term_min_location.start.offset).to.equal(6);
-      expect(results.left.term_min_location.end.offset).to.equal(9);
-      expect(results.left.term_max_location.start.offset).to.equal(17);
-      expect(results.left.term_max_location.end.offset).to.equal(20);
+      expect(results.left.termMinLocation.start.offset).to.equal(6);
+      expect(results.left.termMinLocation.end.offset).to.equal(9);
+      expect(results.left.termMaxLocation.start.offset).to.equal(17);
+      expect(results.left.termMaxLocation.end.offset).to.equal(20);
     });
   });
 });

@@ -41,10 +41,10 @@
  *     'term': string,          // term value
  *     'quoted': boolean,       // whether or not the value was quoted in the input string
  *     'regex': boolean,        // whether or not the value is a regex expression
- *     'prefix': string         // prefix operator (+/-) [OPTIONAL]
- *     'boost': float           // boost value, (value > 1 must be integer) [OPTIONAL]
- *     'similarity': float      // similarity value, (value must be > 0 and < 1) [OPTIONAL]
- *     'proximity': integer     // proximity value [OPTIONAL]
+ *     'prefix': string         // prefix operator (+/-)
+ *     'boost': float           // boost value, (value > 1 must be integer)
+ *     'similarity': float      // similarity value, (value must be > 0 and < 1)
+ *     'proximity': integer     // proximity value
  * }
  *
  *
@@ -53,9 +53,10 @@
  * {
  *     'kind': 'range',
  *     'field': string,         // field name
- *     'term_min': string,      // minimum value (left side) of range
- *     'term_max': string,      // maximum value (right side) of range
- *     'inclusive': string     // inclusive ([...]) or exclusive ({...}) or mixed ({...],[...})
+ *     'termMin': string,       // minimum value (left side) of range
+ *     'termMax': string,       // maximum value (right side) of range
+ *     'minInclusive': boolean, // if min value is inclusive '['
+ *     'maxInclusive': boolean, // if max value is inclusive ']'
  * }
  *
  * Other Notes:
@@ -343,12 +344,12 @@ RangeOperatorExpr
   = rangeOpen:RangeOpenOperator _* termMin:RangedTerm _* 'TO' _+ termMax:RangedTerm _* rangeClose:RangeCloseOperator
     {
       return {
-        term_min: termMin.value,
-        term_min_location: termMin.location,
-        term_max: termMax.value,
-        term_max_location: termMax.location,
-        min_inclusive: rangeOpen === '[',
-        max_inclusive: rangeClose === ']'
+        termMin: termMin.value,
+        termMinLocation: termMin.location,
+        termMax: termMax.value,
+        termMaxLocation: termMax.location,
+        minInclusive: rangeOpen === '[',
+        maxInclusive: rangeClose === ']'
       };
     }
 
@@ -357,19 +358,19 @@ SingleRangeOperatorExpr
     {
       if (op.startsWith('>')) {
         return {
-          term_min: term.value,
-          term_min_location: term.location,
-          min_inclusive: op.length > 1,
-          term_max: implicit,
-          max_inclusive: true
+          termMin: term.value,
+          termMinLocation: term.location,
+          minInclusive: op.length > 1,
+          termMax: implicit,
+          maxInclusive: true
         };
       } else {
         return {
-          term_min: implicit,
-          min_inclusive: true,
-          term_max: term.value,
-          term_max_location: term.location,
-          max_inclusive: op.length > 1,
+          termMin: implicit,
+          minInclusive: true,
+          termMax: term.value,
+          termMaxLocation: term.location,
+          maxInclusive: op.length > 1,
         };
       }
     }
