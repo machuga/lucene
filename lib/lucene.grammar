@@ -115,7 +115,7 @@ Node
           rightNode = right[0].left;
         }
 
-        node.operator = operator == '' ? implicit : operator[0];
+        node.operator = operator.length === 0 ? implicit : operator[0];
         node.right = rightNode;
       }
 
@@ -137,7 +137,7 @@ Node
           rightNode = right[0].left;
         }
 
-        node.operator = operator == '' ? implicit : operator[0];
+        node.operator = operator.length === 0 ? implicit : operator[0];
         node.right = rightNode;
       }
 
@@ -165,26 +165,16 @@ FieldExpr
       range.field = fieldname.name;
       range.fieldLocation = fieldname.location;
 
-      if ('' != prefix) {
-        range.prefix = prefix;
-      }
+      range.prefix = prefix;
 
       return range;
     }
   / prefix:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
     {
-      range.field =
-          fieldname == null || fieldname.name == ''
-              ? "<implicit>"
-              : fieldname.name;
-      range.fieldLocation =
-      fieldname == null || fieldname.name == ''
-          ? null
-          : fieldname.location;
+      range.field = fieldname == null || fieldname.name == '' ? implicit : fieldname.name;
+      range.fieldLocation = fieldname == null || fieldname.name == '' ? null : fieldname.location;
 
-      if ('' != prefix) {
-        range.prefix = prefix;
-      }
+      range.prefix = prefix;
 
       return range;
     }
@@ -193,34 +183,22 @@ FieldExpr
         node.field = fieldname.name;
         node.fieldLocation = fieldname.location;
 
-        if ('' != prefix) {
-          node.prefix = prefix;
-        }
+        node.prefix = prefix;
 
         return node;
     }
   / prefix:PrefixOperatorExpr? fieldname:FieldName? term:Term
     {
       let fieldexp = {
-          field:
-              fieldname == null || fieldname.name == ''
-                  ? "<implicit>"
-                  : fieldname.name,
-          fieldLocation:
-              fieldname == null || fieldname.name == ''
-                  ? null
-                  : fieldname.location,
-
-
-          };
+        field: fieldname == null || fieldname.name == '' ? implicit : fieldname.name,
+        fieldLocation: fieldname == null || fieldname.name == '' ? null : fieldname.location,
+      };
 
       for (let key in term) {
         fieldexp[key] = term[key];
       }
 
-      if ('' != prefix) {
-        fieldexp.prefix = prefix;
-      }
+      fieldexp.prefix = prefix;
 
       return fieldexp;
     }
@@ -238,19 +216,15 @@ Term
   = term:QuotedTerm proximity:ProximityModifier? boost:BoostModifier? _*
     {
       let result = {
-        term: term,
+        term,
+        proximity,
         quoted: true,
         regex : false,
         termLocation: location()
       };
 
-      if ('' != proximity) {
-        result.proximity = proximity;
-      }
 
-      if ('' != boost) {
-        result.boost = boost;
-      }
+      result.boost = boost;
 
       return result;
     }
@@ -263,34 +237,21 @@ Term
         termLocation: location()
       };
 
-      if ('' != prefix) {
-          result.prefix = prefix;
-      }
+      result.prefix = prefix;
 
       return result;
     }
   / prefix:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
     {
-      let result = {
+      return {
+        similarity,
+        boost,
+        prefix,
         term: term.value,
         quoted: false,
         regex: false,
         termLocation: location()
       };
-
-      if ('' != similarity) {
-          result.similarity = similarity;
-      }
-
-      if ('' != boost) {
-          result.boost = boost;
-      }
-
-      if ('' != prefix) {
-          result.prefix = prefix;
-      }
-
-      return result;
     }
 
 RangedTermChar
@@ -358,7 +319,7 @@ NumericExpr
  / IntExpr
 
 DecimalExpr
- = '0.' val:[0-9]+
+  = '0.' val:[0-9]+
     {
       return parseFloat("0." + val.join(''));
     }
