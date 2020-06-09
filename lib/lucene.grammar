@@ -145,9 +145,9 @@ Node
     }
 
 GroupExpr
-  = field_exp:FieldExpr _*
+  = fieldExp:FieldExpr _*
     {
-      return field_exp;
+      return fieldExp;
     }
   / ParenExpr
 
@@ -340,15 +340,15 @@ RangeCloseOperator
   / '}'
 
 RangeOperatorExpr
-  = range_open:RangeOpenOperator _* term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm _* range_close:RangeCloseOperator
+  = rangeOpen:RangeOpenOperator _* termMin:RangedTerm _* 'TO' _+ termMax:RangedTerm _* rangeClose:RangeCloseOperator
     {
       return {
-        term_min: term_min.value,
-        term_min_location: term_min.location,
-        term_max: term_max.value,
-        term_max_location: term_max.location,
-        min_inclusive: range_open === '[',
-        max_inclusive: range_close === ']'
+        term_min: termMin.value,
+        term_min_location: termMin.location,
+        term_max: termMax.value,
+        term_max_location: termMax.location,
+        min_inclusive: rangeOpen === '[',
+        max_inclusive: rangeClose === ']'
       };
     }
 
