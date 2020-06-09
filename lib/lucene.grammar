@@ -80,217 +80,213 @@
  *
  */
 
+ {
+   var implicit = '<implicit>';
+ }
+
 Start
   = _* node:Node+
     {
-        return node[0];
+      return node[0];
     }
   / _*
     {
-        return {};
+      return {};
     }
   / EOF
     {
-        return {};
+      return {};
     }
 
 Node
   = operator:OperatorExpr EOF
     {
-        return {
-            'operator': operator,
-        };
+      return { operator };
     }
   / start:OperatorExpr left:GroupExpr operator:OperatorExpr* right:Node*
     {
-        var node = {
-            'start': start,
-            'left': left,
-        };
+      let node = { start, left };
+      let rightNode = null;
 
-        var right =
-                right.length == 0
-                ? null
-                : right[0]['right'] == null
-                    ? right[0]['left']
-                    : right[0];
-
-        if (right != null) {
-            node['operator'] = operator == '' ? '<implicit>' : operator[0];
-            node['right'] = right;
+      if (right.length > 0) {
+        if (right[0].right) {
+          rightNode = right[0];
+        } else {
+          rightNode = right[0].left;
         }
 
-        return node;
+        node.operator = operator == '' ? implicit : operator[0];
+        node.right = rightNode;
+      }
+
+      return node;
     }
   / operator:OperatorExpr right:Node
     {
-        return right;
+      return right;
     }
   / left:GroupExpr operator:OperatorExpr* right:Node*
     {
-        var node = { left };
+      let node = { left };
+      let rightNode = null;
 
-        var rightNode = null;
-
-        if (right.length > 0) {
-          if (right[0]['right']) {
-            rightNode = right[0];
-          } else {
-            rightNode = right[0]['left'];
-          }
-
-          node['operator'] = operator == '' ? '<implicit>' : operator[0];
-          node['right'] = rightNode;
+      if (right.length > 0) {
+        if (right[0].right) {
+          rightNode = right[0];
+        } else {
+          rightNode = right[0].left;
         }
 
-        return node;
+        node.operator = operator == '' ? implicit : operator[0];
+        node.right = rightNode;
+      }
+
+      return node;
     }
 
 GroupExpr
   = field_exp:FieldExpr _*
     {
-        return field_exp;
+      return field_exp;
     }
   / ParenExpr
 
 ParenExpr
   = "(" _* node:Node+ ")" _*
     {
-        node[0]['parenthesized'] = true;
-        return node[0];
+      // I need to better understand this area
+      node[0].parenthesized = true;
+      return node[0];
     }
 
 FieldExpr
   = op:PrefixOperatorExpr? fieldname:FieldName range:SingleRangeOperatorExpr
     {
-        range['field'] = fieldname.label;
-        range['fieldLocation'] = fieldname.location;
+      range.field = fieldname.label;
+      range.fieldLocation = fieldname.location;
 
-        if('' != op)
-        {
-          range['prefix'] = op;
-        }
+      if ('' != op) {
+        range.prefix = op;
+      }
 
-        return range;
+      return range;
     }
   / op:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
     {
-        range['field'] =
-            fieldname == null || fieldname.label == ''
-                ? "<implicit>"
-                : fieldname.label;
-        range['fieldLocation'] =
-        fieldname == null || fieldname.label == ''
-            ? null
-            : fieldname.location;
+      range.field =
+          fieldname == null || fieldname.label == ''
+              ? "<implicit>"
+              : fieldname.label;
+      range.fieldLocation =
+      fieldname == null || fieldname.label == ''
+          ? null
+          : fieldname.location;
 
-        if('' != op)
-        {
-          range['prefix'] = op;
-        }
-        return range;
+      if ('' != op) {
+        range.prefix = op;
+      }
+
+      return range;
     }
   / op:PrefixOperatorExpr? fieldname:FieldName node:ParenExpr
     {
-        node['field']= fieldname.label;
-        node['fieldLocation'] = fieldname.location;
+        node.field = fieldname.label;
+        node.fieldLocation = fieldname.location;
 
-        if('' != op)
-        {
-          node['prefix'] = op;
+        if ('' != op) {
+          node.prefix = op;
         }
 
         return node;
     }
   / op:PrefixOperatorExpr? fieldname:FieldName? term:Term
     {
-        var fieldexp = {
-            'field':
-                fieldname == null || fieldname.label == ''
-                    ? "<implicit>"
-                    : fieldname.label,
-            'fieldLocation':
-                fieldname == null || fieldname.label == ''
-                    ? null
-                    : fieldname.location,
+      let fieldexp = {
+          field:
+              fieldname == null || fieldname.label == ''
+                  ? "<implicit>"
+                  : fieldname.label,
+          fieldLocation:
+              fieldname == null || fieldname.label == ''
+                  ? null
+                  : fieldname.location,
 
 
-            };
+          };
 
-        for(var key in term)
-            fieldexp[key] = term[key];
+      for (let key in term) {
+        fieldexp[key] = term[key];
+      }
 
-        if('' != op)
-        {
-          fieldexp['prefix'] = op;
-        }
+      if ('' != op) {
+        fieldexp.prefix = op;
+      }
 
-        return fieldexp;
+      return fieldexp;
     }
 
 FieldName
   = fieldname:UnquotedTerm [:] _*
     {
-        return {
-          label: fieldname.label,
-          location: fieldname.location
-        }
-
+      return {
+        label: fieldname.label,
+        location: fieldname.location
+      };
     }
 
 Term
   = term:QuotedTerm proximity:ProximityModifier? boost:BoostModifier? _*
-      {
-        var result = {
-          'term': term,
-          'quoted': true,
-          'regex' : false,
-          'termLocation': location()
-        };
+    {
+      let result = {
+        term: term,
+        quoted: true,
+        regex : false,
+        termLocation: location()
+      };
 
-        if('' != proximity)
-        {
-            result['proximity'] = proximity;
-        }
-        if('' != boost)
-        {
-            result['boost'] = boost;
-        }
+      if ('' != proximity) {
+        result.proximity = proximity;
+      }
 
-        return result;
+      if ('' != boost) {
+        result.boost = boost;
+      }
+
+      return result;
     }
   / op:PrefixOperatorExpr? term:RegexTerm _*
-      {
-        var result = {
-          'term': term,
-          'quoted': false,
-          'regex': true,
-          'termLocation': location()
-        };
+    {
+      let result = {
+        term: term,
+        quoted: false,
+        regex: true,
+        termLocation: location()
+      };
 
-        return result;
+      return result;
     }
   / op:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
     {
-        var result = {
-          'term': term.label,
-          'quoted': false,
-          'regex': false,
-          'termLocation': location()
-        };
-        if('' != similarity)
-        {
-            result['similarity'] = similarity;
-        }
-        if('' != boost)
-        {
-            result['boost'] = boost;
-        }
-        if('' != op)
-        {
-            result['prefix'] = op;
-        }
-        return result;
+      let result = {
+        term: term.label,
+        quoted: false,
+        regex: false,
+        termLocation: location()
+      };
+
+      if ('' != similarity) {
+          result.similarity = similarity;
+      }
+
+      if ('' != boost) {
+          result.boost = boost;
+      }
+
+      if ('' != op) {
+          result.prefix = op;
+      }
+
+      return result;
     }
 
 RangedTermChar
@@ -301,19 +297,19 @@ RangedTermChar
 RangedTerm
   = term:RangedTermChar+
     {
-        return {
-          value: term.join(''),
-          location: location()
-        };
+      return {
+        value: term.join(''),
+        location: location()
+      };
     }
 
 UnquotedTerm
   = term:TermChar+
     {
-        return {
-          label: term.join(''),
-          location: location(),
-        };
+      return {
+        label: term.join(''),
+        location: location(),
+      };
     }
 
 TermChar
@@ -338,19 +334,19 @@ RegexCharacter
 ProximityModifier
   = '~' proximity:IntExpr
     {
-        return proximity;
+      return proximity;
     }
 
 BoostModifier
   = '^' boost:NumericExpr
     {
-        return boost;
+      return boost;
     }
 
 FuzzyModifier
   = '~' fuzziness:DecimalExpr?
     {
-        return fuzziness == '' || fuzziness == null ? 0.5 : fuzziness;
+      return fuzziness == '' || fuzziness == null ? 0.5 : fuzziness;
     }
 
 NumericExpr
@@ -360,13 +356,13 @@ NumericExpr
 DecimalExpr
  = '0.' val:[0-9]+
     {
-        return parseFloat("0." + val.join(''));
+      return parseFloat("0." + val.join(''));
     }
 
 IntExpr
   = val:[0-9]+
     {
-        return parseInt(val.join(''));
+      return parseInt(val.join(''));
     }
 
 
@@ -381,14 +377,14 @@ RangeCloseOperator
 RangeOperatorExpr
   = range_open:RangeOpenOperator _* term_min:RangedTerm _* 'TO' _+ term_max:RangedTerm _* range_close:RangeCloseOperator
     {
-        return {
-            'term_min': term_min.value,
-            'term_min_location': term_min.location,
-            'term_max': term_max.value,
-            'term_max_location': term_max.location,
-            'min_inclusive': range_open === '[',
-            'max_inclusive': range_close === ']'
-        };
+      return {
+        term_min: term_min.value,
+        term_min_location: term_min.location,
+        term_max: term_max.value,
+        term_max_location: term_max.location,
+        min_inclusive: range_open === '[',
+        max_inclusive: range_close === ']'
+      };
     }
 
 SingleRangeOperatorExpr
@@ -396,19 +392,19 @@ SingleRangeOperatorExpr
     {
       if (op.startsWith('>')) {
         return {
-            'term_min': term.value,
-            'term_min_location': term.location,
-            'min_inclusive': op.length > 1,
-            'term_max': '<implicit>',
-            'max_inclusive': true
+          term_min: term.value,
+          term_min_location: term.location,
+          min_inclusive: op.length > 1,
+          term_max: implicit,
+          max_inclusive: true
         };
       } else {
         return {
-            'term_min': '<implicit>',
-            'min_inclusive': true,
-            'term_max': term.value,
-            'term_max_location': term.location,
-            'max_inclusive': op.length > 1,
+          term_min: implicit,
+          min_inclusive: true,
+          term_max: term.value,
+          term_max_location: term.location,
+          max_inclusive: op.length > 1,
         };
       }
     }
@@ -422,21 +418,21 @@ SingleRangeOperator
 SingleExpr
   = _* operator:Operator _+
     {
-        return operator;
+      return operator;
     }
   / _* operator:Operator EOF
     {
-        return operator;
+      return operator;
     }
 
 OperatorExpr
   = _* operator:Operator _+
     {
-        return operator;
+      return operator;
     }
   / _* operator:Operator EOF
     {
-        return operator;
+      return operator;
     }
 
 Operator
@@ -451,7 +447,7 @@ Operator
 PrefixOperatorExpr
   = _* operator:PrefixOperator
     {
-        return operator;
+      return operator;
     }
 
 PrefixOperator
@@ -487,5 +483,3 @@ EscapeSequence
   / "~"
   / "*"
   / " "
-
-
