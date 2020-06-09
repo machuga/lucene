@@ -160,18 +160,18 @@ ParenExpr
     }
 
 FieldExpr
-  = op:PrefixOperatorExpr? fieldname:FieldName range:SingleRangeOperatorExpr
+  = prefix:PrefixOperatorExpr? fieldname:FieldName range:SingleRangeOperatorExpr
     {
       range.field = fieldname.name;
       range.fieldLocation = fieldname.location;
 
-      if ('' != op) {
-        range.prefix = op;
+      if ('' != prefix) {
+        range.prefix = prefix;
       }
 
       return range;
     }
-  / op:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
+  / prefix:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
     {
       range.field =
           fieldname == null || fieldname.name == ''
@@ -182,24 +182,24 @@ FieldExpr
           ? null
           : fieldname.location;
 
-      if ('' != op) {
-        range.prefix = op;
+      if ('' != prefix) {
+        range.prefix = prefix;
       }
 
       return range;
     }
-  / op:PrefixOperatorExpr? fieldname:FieldName node:ParenExpr
+  / prefix:PrefixOperatorExpr? fieldname:FieldName node:ParenExpr
     {
         node.field = fieldname.name;
         node.fieldLocation = fieldname.location;
 
-        if ('' != op) {
-          node.prefix = op;
+        if ('' != prefix) {
+          node.prefix = prefix;
         }
 
         return node;
     }
-  / op:PrefixOperatorExpr? fieldname:FieldName? term:Term
+  / prefix:PrefixOperatorExpr? fieldname:FieldName? term:Term
     {
       let fieldexp = {
           field:
@@ -218,8 +218,8 @@ FieldExpr
         fieldexp[key] = term[key];
       }
 
-      if ('' != op) {
-        fieldexp.prefix = op;
+      if ('' != prefix) {
+        fieldexp.prefix = prefix;
       }
 
       return fieldexp;
@@ -254,7 +254,7 @@ Term
 
       return result;
     }
-  / op:PrefixOperatorExpr? term:RegexTerm _*
+  / prefix:PrefixOperatorExpr? term:RegexTerm _*
     {
       let result = {
         term: term,
@@ -263,9 +263,13 @@ Term
         termLocation: location()
       };
 
+      if ('' != prefix) {
+          result.prefix = prefix;
+      }
+
       return result;
     }
-  / op:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
+  / prefix:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
     {
       let result = {
         term: term.value,
@@ -282,8 +286,8 @@ Term
           result.boost = boost;
       }
 
-      if ('' != op) {
-          result.prefix = op;
+      if ('' != prefix) {
+          result.prefix = prefix;
       }
 
       return result;
