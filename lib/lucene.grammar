@@ -103,9 +103,9 @@ Node
     {
       return { operator };
     }
-  / start:OperatorExpr left:GroupExpr operator:OperatorExpr* right:Node*
+  / start:OperatorExpr? left:GroupExpr positiveOp:PositiveOperatorExpr? negativeOp:NegativeOperatorExpr? right:Node*
     {
-      let node = { start, left };
+      let node = { left, start, type: 'node' };
       let rightNode = null;
 
       if (right.length > 0) {
@@ -115,9 +115,20 @@ Node
           rightNode = right[0].left;
         }
 
-        node.operator = operator.length === 0 ? implicit : operator[0];
-        node.type = 'node';
-        node.right = rightNode;
+        if (positiveOp && negativeOp) {
+          // AND NOT or OR NOT
+          // In this situation we have a nested group
+          // node.right = { operator: negativeOp, left: rightNode}
+          node.right = {
+            tacos: 'tacooooos',
+            operator: negativeOp,
+            left: rightNode
+          };
+        } else {
+          node.right = rightNode;
+        }
+
+        node.operator = positiveOp || negativeOp || implicit;
       }
 
       return node;
@@ -125,25 +136,6 @@ Node
   / operator:OperatorExpr right:Node
     {
       return right;
-    }
-  / left:GroupExpr operator:OperatorExpr* right:Node*
-    {
-      let node = { left };
-      let rightNode = null;
-
-      if (right.length > 0) {
-        if (right[0].right) {
-          rightNode = right[0];
-        } else {
-          rightNode = right[0].left;
-        }
-
-        node.operator = operator.length === 0 ? implicit : operator[0];
-        node.type = 'node';
-        node.right = rightNode;
-      }
-
-      return node;
     }
 
 GroupExpr
@@ -408,14 +400,40 @@ OperatorExpr
       return operator;
     }
 
-Operator
-  = 'OR NOT'
-  / 'AND NOT'
-  / 'OR'
+PositiveOperatorExpr
+  = _* operator:PositiveOperator _+
+    {
+      return operator;
+    }
+  / _* operator:PositiveOperator EOF
+    {
+      return operator;
+    }
+
+NegativeOperatorExpr
+  = _* operator:NegativeOperator _+
+    {
+      return operator;
+    }
+  / _* operator:NegativeOperator EOF
+    {
+      return operator;
+    }
+
+
+PositiveOperator
+  = 'OR'
   / 'AND'
-  / 'NOT'
   / '||'
   / '&&'
+
+NegativeOperator
+  = 'NOT'
+  / '!'
+
+Operator
+  = PositiveOperator
+  / NegativeOperator
 
 PrefixOperatorExpr
   = _* operator:PrefixOperator

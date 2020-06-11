@@ -278,9 +278,10 @@ describe('Lucene Query syntax documentation examples', () => {
 
     expect(results.left.field).to.equal('<implicit>');
     expect(results.left.term).to.equal('java');
-    expect(results.operator).to.equal('AND NOT');
-    expect(results.right.field).to.equal('<implicit>');
-    expect(results.right.term).to.equal('yamaha');
+    expect(results.operator).to.equal('AND');
+    expect(results.right.operator).to.equal('NOT');
+    expect(results.right.left.field).to.equal('<implicit>');
+    expect(results.right.left.term).to.equal('yamaha');
   });
 
   it('parses example: NOT (java OR python) AND android', () => {

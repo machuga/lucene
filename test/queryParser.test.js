@@ -243,6 +243,32 @@ describe('queryParser', () => {
       expect(results.right.term).to.equal('buzz');
     });
 
+    it('parses explicit conjunction operators (AND NOT)', () => {
+      const results = lucene.parse('fizz AND NOT buzz');
+
+      const rightNode = results.right;
+
+      expect(results.left.term).to.equal('fizz');
+      expect(results.operator).to.equal('AND');
+      expect(rightNode.operator).to.equal('NOT');
+      expect(rightNode.left.term).to.equal('buzz');
+    });
+
+    it('parses explicit conjunction operators (AND NOT) and does not butcher the rest of the tree', () => {
+      const results = lucene.parse('fizz AND NOT (buzz baz) biz bar');
+
+      const rightNode = results.right;
+
+      expect(results.left.term).to.equal('fizz');
+      expect(results.operator).to.equal('AND');
+      expect(rightNode.operator).to.equal('NOT');
+      expect(rightNode.left.left.operator).to.equal('<implicit>');
+      expect(rightNode.left.left.left.term).to.equal('buzz');
+      expect(rightNode.left.left.right.term).to.equal('baz');
+      expect(rightNode.left.right.left.term).to.equal('biz');
+      expect(rightNode.left.right.right.term).to.equal('bar');
+    });
+
     it('parses explicit conjunction operator (&&)', () => {
       const results = lucene.parse('fizz && buzz');
 
