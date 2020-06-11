@@ -23,40 +23,39 @@
  * A node expression generally has the following structure:
  *
  * {
- *
- *     'left' : dictionary,     // field expression or node
- *     'operator': string,      // operator value
- *     'right': dictionary,     // field expression OR node
- *     'field': string          // field name (for field group syntax) [OPTIONAL]
- *     'parenthesized': boolean // whether or not the expression was placed in parentheses
- *                              // in the input
+ *   'type: : 'node',
+ *   'left' : dictionary,     // field expression or node
+ *   'operator': string,      // operator value
+ *   'right': dictionary,     // field expression OR node
+ *   'field': string          // field name (for field group syntax) [OPTIONAL]
+ *   'parenthesized': boolean // whether or not the expression was placed in parentheses
  * }
  *
  *
  * A field expression has the following structure:
  *
  * {
- *     'kind': 'term',
- *     'field': string,         // field name
- *     'term': string,          // term value
- *     'quoted': boolean,       // whether or not the value was quoted in the input string
- *     'regex': boolean,        // whether or not the value is a regex expression
- *     'prefix': string         // prefix operator (+/-)
- *     'boost': float           // boost value, (value > 1 must be integer)
- *     'similarity': float      // similarity value, (value must be > 0 and < 1)
- *     'proximity': integer     // proximity value
+ *   'type': 'term',
+ *   'field': string,         // field name
+ *   'term': string,          // term value
+ *   'quoted': boolean,       // whether or not the value was quoted in the input string
+ *   'regex': boolean,        // whether or not the value is a regex expression
+ *   'prefix': string         // prefix operator (+/-)
+ *   'boost': float           // boost value, (value > 1 must be integer)
+ *   'similarity': float      // similarity value, (value must be > 0 and < 1)
+ *   'proximity': integer     // proximity value
  * }
  *
  *
  * A range expression has the following structure:
  *
  * {
- *     'kind': 'range',
- *     'field': string,         // field name
- *     'termMin': string,       // minimum value (left side) of range
- *     'termMax': string,       // maximum value (right side) of range
- *     'minInclusive': boolean, // if min value is inclusive '['
- *     'maxInclusive': boolean, // if max value is inclusive ']'
+ *   'type': 'range',
+ *   'field': string,         // field name
+ *   'termMin': string,       // minimum value (left side) of range
+ *   'termMax': string,       // maximum value (right side) of range
+ *   'minInclusive': boolean, // if min value is inclusive '['
+ *   'maxInclusive': boolean, // if max value is inclusive ']'
  * }
  *
  * Other Notes:
@@ -117,6 +116,7 @@ Node
         }
 
         node.operator = operator.length === 0 ? implicit : operator[0];
+        node.type = 'node';
         node.right = rightNode;
       }
 
@@ -139,6 +139,7 @@ Node
         }
 
         node.operator = operator.length === 0 ? implicit : operator[0];
+        node.type = 'node';
         node.right = rightNode;
       }
 
@@ -157,6 +158,7 @@ ParenExpr
     {
       // I need to better understand this area
       node[0].parenthesized = true;
+      node[0].type = 'node';
       return node[0];
     }
 
@@ -221,9 +223,9 @@ Term
         proximity,
         quoted: true,
         regex : false,
+        type: 'term',
         termLocation: location()
       };
-
 
       result.boost = boost;
 
@@ -235,6 +237,7 @@ Term
         term: term,
         quoted: false,
         regex: true,
+        type: 'term',
         termLocation: location()
       };
 
@@ -251,6 +254,7 @@ Term
         term: term.value,
         quoted: false,
         regex: false,
+        type: 'term',
         termLocation: location()
       };
     }
@@ -344,6 +348,7 @@ RangeOperatorExpr
   = rangeOpen:RangeOpenOperator _* termMin:RangedTerm _* 'TO' _+ termMax:RangedTerm _* rangeClose:RangeCloseOperator
     {
       return {
+        type: 'range',
         termMin: termMin.value,
         termMinLocation: termMin.location,
         termMax: termMax.value,
@@ -358,6 +363,7 @@ SingleRangeOperatorExpr
     {
       if (op.startsWith('>')) {
         return {
+          type: 'range',
           termMin: term.value,
           termMinLocation: term.location,
           minInclusive: op.length > 1,
@@ -366,6 +372,7 @@ SingleRangeOperatorExpr
         };
       } else {
         return {
+          type: 'range',
           termMin: implicit,
           minInclusive: true,
           termMax: term.value,

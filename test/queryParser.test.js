@@ -31,6 +31,7 @@ describe('queryParser', () => {
 
       expect(results.left.field).to.equal('foo');
       expect(results.left.term).to.equal('bar');
+      expect(results.left.type).to.equal('term');
     });
 
     function isEmpty(arr) {
@@ -266,6 +267,7 @@ describe('queryParser', () => {
       expect(results.left.term).to.equal('fizz');
       expect(results.operator).to.equal('<implicit>');
       expect(results.parenthesized).to.equal(undefined);
+      expect(results.type).to.equal('node');
 
       const rightNode = results.right;
 
@@ -273,6 +275,7 @@ describe('queryParser', () => {
       expect(rightNode.operator).to.equal('<implicit>');
       expect(rightNode.parenthesized).to.equal(true);
       expect(rightNode.right.term).to.equal('baz');
+      expect(rightNode.type).to.equal('node');
     });
 
     it('parses parentheses groups with explicit conjunction operators ', () => {
@@ -287,12 +290,32 @@ describe('queryParser', () => {
       expect(rightNode.operator).to.equal('OR');
       expect(rightNode.right.term).to.equal('baz');
     });
+
+    it('parses field groups', () => {
+      const results = lucene.parse('fizz:(buzz OR baz)');
+
+      expect(results.left.field).to.equal('fizz');
+      expect(results.left.operator).to.equal('OR');
+      expect(results.left.parenthesized).to.equal(true);
+
+      const leftNode = results.left.left;
+      const rightNode = results.left.right;
+
+      expect(leftNode.type).to.equal('term');
+      expect(leftNode.term).to.equal('buzz');
+      expect(leftNode.field).to.equal('<implicit>');
+
+      expect(rightNode.type).to.equal('term');
+      expect(rightNode.term).to.equal('baz');
+      expect(rightNode.field).to.equal('<implicit>');
+    });
   });
 
   describe('range expressions', () => {
     it('parses inclusive range expression', () => {
       const results = lucene.parse('foo:[bar TO baz]');
 
+      expect(results.left.type).to.equal('range');
       expect(results.left.field).to.equal('foo');
       expect(results.left.termMin).to.equal('bar');
       expect(results.left.termMax).to.equal('baz');
@@ -364,6 +387,7 @@ describe('queryParser', () => {
       it('parses a left inclusive range', () => {
         const results = lucene.parse('foo:>=42');
 
+        expect(results.left.type).to.equal('range');
         expect(results.left.field).to.equal('foo');
         expect(results.left.termMin).to.equal('42');
         expect(results.left.termMax).to.equal('<implicit>');
