@@ -120,7 +120,6 @@ Node
           // In this situation we have a nested group
           // node.right = { operator: negativeOp, left: rightNode}
           node.right = {
-            tacos: 'tacooooos',
             operator: negativeOp,
             left: rightNode
           };
