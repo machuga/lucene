@@ -416,7 +416,7 @@ describe('queryParser', () => {
         expect(results.left.type).to.equal('range');
         expect(results.left.field).to.equal('foo');
         expect(results.left.termMin).to.equal('42');
-        expect(results.left.termMax).to.equal('<implicit>');
+        expect(results.left.termMax).to.equal('*');
         expect(results.left.minInclusive).to.equal(true);
         expect(results.left.maxInclusive).to.equal(true);
       });
@@ -426,7 +426,7 @@ describe('queryParser', () => {
 
         expect(results.left.field).to.equal('foo');
         expect(results.left.termMin).to.equal('42');
-        expect(results.left.termMax).to.equal('<implicit>');
+        expect(results.left.termMax).to.equal('*');
         expect(results.left.minInclusive).to.equal(false);
         expect(results.left.maxInclusive).to.equal(true);
       });
@@ -435,7 +435,7 @@ describe('queryParser', () => {
         const results = lucene.parse('foo:<=42');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.termMin).to.equal('<implicit>');
+        expect(results.left.termMin).to.equal('*');
         expect(results.left.termMax).to.equal('42');
         expect(results.left.minInclusive).to.equal(true);
         expect(results.left.maxInclusive).to.equal(true);
@@ -445,7 +445,7 @@ describe('queryParser', () => {
         const results = lucene.parse('foo:<42');
 
         expect(results.left.field).to.equal('foo');
-        expect(results.left.termMin).to.equal('<implicit>');
+        expect(results.left.termMin).to.equal('*');
         expect(results.left.termMax).to.equal('42');
         expect(results.left.minInclusive).to.equal(true);
         expect(results.left.maxInclusive).to.equal(false);
@@ -456,7 +456,7 @@ describe('queryParser', () => {
 
         expect(results.left.field).to.equal('foo');
         expect(results.left.termMin).to.equal('now+5d');
-        expect(results.left.termMax).to.equal('<implicit>');
+        expect(results.left.termMax).to.equal('*');
         expect(results.left.minInclusive).to.equal(false);
         expect(results.left.maxInclusive).to.equal(true);
       });

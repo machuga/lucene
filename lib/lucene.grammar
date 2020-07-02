@@ -82,6 +82,7 @@
 
  {
    var implicit = '<implicit>';
+   var wildcard = '*';
  }
 
 Start
@@ -358,13 +359,13 @@ SingleRangeOperatorExpr
           termMin: term.value,
           termMinLocation: term.location,
           minInclusive: op.length > 1,
-          termMax: implicit,
+          termMax: wildcard,
           maxInclusive: true
         };
       } else {
         return {
           type: 'range',
-          termMin: implicit,
+          termMin: wildcard,
           minInclusive: true,
           termMax: term.value,
           termMaxLocation: term.location,
