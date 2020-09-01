@@ -226,9 +226,9 @@ describe('Lucene Query syntax documentation examples', () => {
   it('parses example: NOT "jakarta apache"', () => {
     const results = lucene.parse('NOT "jakarta apache"');
 
-    expect(results.left.field).to.equal('<implicit>');
-    expect(results.left.term).to.equal('jakarta apache');
-    expect(results.start).to.equal('NOT');
+    expect(results.left.left.field).to.equal('<implicit>');
+    expect(results.left.left.term).to.equal('jakarta apache');
+    expect(results.left.operator).to.equal('NOT');
     expect(results.right).to.equal(undefined);
     expect(results.operator).to.equal(undefined);
   });
@@ -288,13 +288,14 @@ describe('Lucene Query syntax documentation examples', () => {
     const results = lucene.parse('NOT (java OR python) AND android');
     const leftNode = results.left;
 
-    expect(results.start).to.equal('NOT');
+    // expect(results.start).to.equal('NOT');
 
-    expect(leftNode.left.field).to.equal('<implicit>');
-    expect(leftNode.left.term).to.equal('java');
-    expect(leftNode.operator).to.equal('OR');
-    expect(leftNode.right.field).to.equal('<implicit>');
-    expect(leftNode.right.term).to.equal('python');
+    expect(leftNode.left.left.field).to.equal('<implicit>');
+    expect(leftNode.left.left.term).to.equal('java');
+    expect(leftNode.operator).to.equal('NOT');
+    expect(leftNode.left.operator).to.equal('OR');
+    expect(leftNode.left.right.field).to.equal('<implicit>');
+    expect(leftNode.left.right.term).to.equal('python');
 
     expect(results.operator).to.equal('AND');
     expect(results.right.field).to.equal('<implicit>');
