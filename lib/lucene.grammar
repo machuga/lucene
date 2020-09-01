@@ -83,6 +83,7 @@
  {
    var implicit = '<implicit>';
    var wildcard = '*';
+   var negativeOps = ['NOT', '!'];
  }
 
 Start
@@ -106,8 +107,17 @@ Node
     }
   / start:OperatorExpr? left:GroupExpr positiveOp:PositiveOperatorExpr? negativeOp:NegativeOperatorExpr? right:Node*
     {
-      let node = { left, start, type: 'node' };
+      let node = { left, type: 'node' };
       let rightNode = null;
+
+      if (negativeOps.includes(start)) {
+        node.left = {
+          operator: start,
+          left
+        }
+      } else {
+        node.start = start;
+      }
 
       if (right.length > 0) {
         if (right[0].right) {
