@@ -84,12 +84,23 @@
    var implicit = '<implicit>';
    var wildcard = '*';
    var negativeOps = ['NOT', '!'];
+
+   var leftAssociative = (originalLeft, operator, rest) =>
+     rest.reduce((left, right) => ({ left, operator, right }), originalLeft);
  }
 
 Start
-  = _* node:Node+
+  = _* node:ClauseOr
     {
-      return node[0];
+      //return node;
+      if (!node.operator) {
+        return {
+          left: node,
+          type: 'node',
+        }
+      }
+
+      return { ...node, type: 'node' };
     }
   / _*
     {
@@ -100,53 +111,110 @@ Start
       return {};
     }
 
+LogicalAnd
+  = 'AND'
+  / '&&'
+
+LogicalOr
+  = 'OR'
+  / '||'
+
+LogicalNot
+  = 'NOT'
+  / '!'
+
+ClauseOr
+  = _* left:ClauseAnd _* operator:LogicalOr _* rest:ClauseOr*
+  {
+    return leftAssociative(left, operator || implicit, rest);
+  }
+  / _* left:ClauseAnd _* rest:ClauseOr*
+  {
+    return leftAssociative(left, implicit, rest);
+  }
+  / ClauseAnd
+
+ClauseAnd
+  = _* left:ClauseNot _* operator:LogicalAnd _+ right:ClauseAnd _*
+  {
+    return { left, operator, right, type: 'node'}
+  }
+  / ClauseNot
+
+ClauseNot
+  = _* operator:LogicalNot _+ left:PrimaryClause _*
+  {
+    return { left, operator, right: null, type: 'node'};
+  }
+  / PrimaryClause
+
+
+PrimaryClause
+  = _* '(' _* left:ClauseOr _* ')'
+  {
+    if (left && left.left) {
+      return {...left, type: 'node', parenthesized: true };
+    }
+
+    return { left, type: 'node', parenthesized: true };
+    }
+  / left:FieldExpr
+  {
+    return left;
+  }
+
+
 Node
   = operator:OperatorExpr EOF
-    {
-      return { operator };
-    }
-  / start:OperatorExpr? left:GroupExpr positiveOp:PositiveOperatorExpr? negativeOp:NegativeOperatorExpr? right:Node*
-    {
-      let node = { left, type: 'node' };
-      let rightNode = null;
+  {
+    return { operator };
+  }
+  / operator:OperatorExpr? _* left:ClauseOr _* EOF
+  {
+    return { ...left, type: 'node' };
+  }
+  // start:OperatorExpr? left:GroupExpr positiveOp:PositiveOperatorExpr? negativeOp:NegativeOperatorExpr? right:Node*
+  // {
+  //   let node = { left, type: 'node' };
+  //   let rightNode = null;
 
-      if (negativeOps.includes(start)) {
-        node.left = {
-          operator: start,
-          left
-        }
-      } else {
-        node.start = start;
-      }
+  //   if (negativeOps.includes(start)) {
+  //     node.left = {
+  //       operator: start,
+  //       left
+  //     }
+  //   } else {
+  //     node.start = start;
+  //   }
 
-      if (right.length > 0) {
-        if (right[0].right) {
-          rightNode = right[0];
-        } else {
-          rightNode = right[0].left;
-        }
+  //   if (right.length > 0) {
+  //     if (right[0].right) {
+  //       rightNode = right[0];
+  //     } else {
+  //       rightNode = right[0].left;
+  //     }
 
-        if (positiveOp && negativeOp) {
-          // AND NOT or OR NOT
-          // In this situation we have a nested group
-          // node.right = { operator: negativeOp, left: rightNode}
-          node.right = {
-            operator: negativeOp,
-            left: rightNode
-          };
-        } else {
-          node.right = rightNode;
-        }
+  //     if (positiveOp && negativeOp) {
+  //       // AND NOT or OR NOT
+  //       // In this situation we have a nested group
+  //       // node.right = { operator: negativeOp, left: rightNode}
+  //       node.right = {
+  //         operator: negativeOp,
+  //         left: rightNode
+  //       };
+  //     } else {
+  //       node.right = rightNode;
+  //     }
 
-        node.operator = positiveOp || negativeOp || implicit;
-      }
+  //     node.operator = positiveOp || negativeOp || implicit;
+  //   }
 
-      return node;
-    }
-  / operator:OperatorExpr right:Node
-    {
-      return right;
-    }
+  //   return node;
+  // }
+  // operator:OperatorExpr right:Node
+  // {
+  //   return right;
+  // }
 
 GroupExpr
   = fieldExp:FieldExpr _*
@@ -156,7 +224,7 @@ GroupExpr
   / ParenExpr
 
 ParenExpr
-  = "(" _* node:Node+ ")" _*
+  = "(" _* node:Node* ")" _*
     {
       // I need to better understand this area
       node[0].parenthesized = true;
@@ -183,7 +251,7 @@ FieldExpr
 
       return range;
     }
-  / prefix:PrefixOperatorExpr? fieldname:FieldName node:ParenExpr
+  / prefix:PrefixOperatorExpr? fieldname:FieldName node:PrimaryClause
     {
         node.field = fieldname.name;
         node.fieldLocation = fieldname.location;

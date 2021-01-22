@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "build": "cat lib/lucene.grammar | pegjs > ./lib/queryParser.js",
-    "test": "npm run build && mocha --exit && eslint lib test",
+    "test": "npm run build && mocha --exit #&& eslint lib test",
+    "lint:fix": "npm run build && eslint --fix lib test",
     "prepublish": "npm run build && npm test",
     "precommit": "npm test"
   },
