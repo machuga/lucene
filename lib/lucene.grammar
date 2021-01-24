@@ -83,7 +83,6 @@
  {
    var implicit = '<implicit>';
    var wildcard = '*';
-   var negativeOps = ['NOT', '!'];
 
    var leftAssociative = (originalLeft, operator, rest) =>
      rest.reduce((left, right) => ({ left, operator, right }), originalLeft);
@@ -92,7 +91,6 @@
 Start
   = _* node:ClauseOr
     {
-      //return node;
       if (!node.operator) {
         return {
           left: node,
@@ -163,77 +161,8 @@ PrimaryClause
     return left;
   }
 
-
-Node
-  = operator:OperatorExpr EOF
-  {
-    return { operator };
-  }
-  / operator:OperatorExpr? _* left:ClauseOr _* EOF
-  {
-    return { ...left, type: 'node' };
-  }
-  // start:OperatorExpr? left:GroupExpr positiveOp:PositiveOperatorExpr? negativeOp:NegativeOperatorExpr? right:Node*
-  // {
-  //   let node = { left, type: 'node' };
-  //   let rightNode = null;
-
-  //   if (negativeOps.includes(start)) {
-  //     node.left = {
-  //       operator: start,
-  //       left
-  //     }
-  //   } else {
-  //     node.start = start;
-  //   }
-
-  //   if (right.length > 0) {
-  //     if (right[0].right) {
-  //       rightNode = right[0];
-  //     } else {
-  //       rightNode = right[0].left;
-  //     }
-
-  //     if (positiveOp && negativeOp) {
-  //       // AND NOT or OR NOT
-  //       // In this situation we have a nested group
-  //       // node.right = { operator: negativeOp, left: rightNode}
-  //       node.right = {
-  //         operator: negativeOp,
-  //         left: rightNode
-  //       };
-  //     } else {
-  //       node.right = rightNode;
-  //     }
-
-  //     node.operator = positiveOp || negativeOp || implicit;
-  //   }
-
-  //   return node;
-  // }
-  // operator:OperatorExpr right:Node
-  // {
-  //   return right;
-  // }
-
-GroupExpr
-  = fieldExp:FieldExpr _*
-    {
-      return fieldExp;
-    }
-  / ParenExpr
-
-ParenExpr
-  = "(" _* node:Node* ")" _*
-    {
-      // I need to better understand this area
-      node[0].parenthesized = true;
-      node[0].type = 'node';
-      return node[0];
-    }
-
 FieldExpr
-  = prefix:PrefixOperatorExpr? fieldname:FieldName range:SingleRangeOperatorExpr
+  = prefix:PrefixOperator? fieldname:FieldName range:SingleRangeOperatorExpr
     {
       range.field = fieldname.name;
       range.fieldLocation = fieldname.location;
@@ -242,7 +171,7 @@ FieldExpr
 
       return range;
     }
-  / prefix:PrefixOperatorExpr? fieldname:FieldName? range:RangeOperatorExpr
+  / prefix:PrefixOperator? fieldname:FieldName? range:RangeOperatorExpr
     {
       range.field = fieldname == null || fieldname.name == '' ? implicit : fieldname.name;
       range.fieldLocation = fieldname == null || fieldname.name == '' ? null : fieldname.location;
@@ -251,7 +180,7 @@ FieldExpr
 
       return range;
     }
-  / prefix:PrefixOperatorExpr? fieldname:FieldName node:PrimaryClause
+  / prefix:PrefixOperator? fieldname:FieldName node:PrimaryClause
     {
         node.field = fieldname.name;
         node.fieldLocation = fieldname.location;
@@ -260,7 +189,7 @@ FieldExpr
 
         return node;
     }
-  / prefix:PrefixOperatorExpr? fieldname:FieldName? term:Term
+  / prefix:PrefixOperator? fieldname:FieldName? term:Term
     {
       let fieldexp = {
         field: fieldname == null || fieldname.name == '' ? implicit : fieldname.name,
@@ -301,7 +230,7 @@ Term
 
       return result;
     }
-  / prefix:PrefixOperatorExpr? term:RegexTerm _*
+  / prefix:PrefixOperator? term:RegexTerm _*
     {
       let result = {
         term: term,
@@ -315,7 +244,7 @@ Term
 
       return result;
     }
-  / prefix:PrefixOperatorExpr? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
+  / prefix:PrefixOperator? term:UnquotedTerm similarity:FuzzyModifier? boost:BoostModifier? _*
     {
       return {
         similarity,
@@ -457,67 +386,6 @@ SingleRangeOperator
   / '<='
   / '>'
   / '<'
-
-SingleExpr
-  = _* operator:Operator _+
-    {
-      return operator;
-    }
-  / _* operator:Operator EOF
-    {
-      return operator;
-    }
-
-OperatorExpr
-  = _* operator:Operator _+
-    {
-      return operator;
-    }
-  / _* operator:Operator EOF
-    {
-      return operator;
-    }
-
-PositiveOperatorExpr
-  = _* operator:PositiveOperator _+
-    {
-      return operator;
-    }
-  / _* operator:PositiveOperator EOF
-    {
-      return operator;
-    }
-
-NegativeOperatorExpr
-  = _* operator:NegativeOperator _+
-    {
-      return operator;
-    }
-  / _* operator:NegativeOperator EOF
-    {
-      return operator;
-    }
-
-
-PositiveOperator
-  = 'OR'
-  / 'AND'
-  / '||'
-  / '&&'
-
-NegativeOperator
-  = 'NOT'
-  / '!'
-
-Operator
-  = PositiveOperator
-  / NegativeOperator
-
-PrefixOperatorExpr
-  = _* operator:PrefixOperator
-    {
-      return operator;
-    }
 
 PrefixOperator
   = '+'
