@@ -86,28 +86,29 @@
 
    var leftAssociative = (originalLeft, operator, rest) =>
      rest.reduce((left, right) => ({ left, operator, right }), originalLeft);
+
+   var wrapInNode = (node, operator = null) => {
+     if (!node.operator) {
+       return {
+         left: node,
+         type: 'node',
+       };
+     }
+
+     return { ...node, type: 'node' };
+   }
  }
 
 Start
-  = _* node:ClauseOr
-    {
-      if (!node.operator) {
-        return {
-          left: node,
-          type: 'node',
-        }
-      }
+  = operator:BooleanOperator _* EOF { return { operator }; }
+  /  BinaryOperator _* node:ClauseOr { return wrapInNode(node); }
+  / _* node:ClauseOr { return wrapInNode(node); }
+  / _* { return {}; }
+  / EOF { return {}; }
 
-      return { ...node, type: 'node' };
-    }
-  / _*
-    {
-      return {};
-    }
-  / EOF
-    {
-      return {};
-    }
+BooleanOperator = BinaryOperator / UnaryOperator
+BinaryOperator = LogicalAnd / LogicalOr;
+UnaryOperator = LogicalNot
 
 LogicalAnd
   = 'AND'
@@ -294,7 +295,12 @@ RegexTerm
 
 DoubleStringCharacter
   = !('"' / "\\") char:. { return char; }
+  / EscapedChar
   / "\\" sequence:EscapeSequence { return '\\' + sequence; }
+
+EscapedChar
+  = "\\" char:[^\"\\] { return '\\' + char; }
+  / "\\" char:[^\"\\\?\*] { return '\\' + char; }
 
 RegexCharacter
   = !('/' / "\\") char:. { return char; }
