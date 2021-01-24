@@ -492,6 +492,12 @@ describe("queryParser", () => {
       expect(results.left.term).to.equal("a\\:b");
       expect(results.right.term).to.equal("c\\~d\\+\\-\\?\\*");
     });
+
+    it("must correctly allow escape character as part of phrase when not a reserved character", () => {
+      const results = lucene.parse('"a\\b"');
+
+      expect(results.left.term).to.equal("a\\b");
+    });
   });
 
   describe("escaped sequences in unquoted terms", () => {
